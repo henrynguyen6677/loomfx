@@ -2,12 +2,9 @@
   import { onMount } from 'svelte';
   import { settingsStore } from '$lib/stores/settingsStore';
   import { recordingStore } from '$lib/stores/recordingStore';
-  import { QUALITY_PRESETS, WEBCAM_POSITIONS, type WebcamPosition } from '$lib/utils/constants';
+  import { QUALITY_PRESETS, WEBCAM_POSITIONS } from '$lib/utils/constants';
 
-  interface Props {
-    onClose: () => void;
-  }
-
+  interface Props { onClose: () => void; }
   let { onClose }: Props = $props();
 
   let cameras = $state<MediaDeviceInfo[]>([]);
@@ -24,9 +21,7 @@
   });
 
   function handleBackdropClick(e: MouseEvent) {
-    if ((e.target as HTMLElement).classList.contains('settings-backdrop')) {
-      onClose();
-    }
+    if ((e.target as HTMLElement).classList.contains('settings-backdrop')) onClose();
   }
 </script>
 
@@ -35,124 +30,97 @@
 <div class="settings-backdrop" onclick={handleBackdropClick} id="settings-panel">
   <div class="settings-drawer glass">
     <div class="drawer-header">
-      <h2 class="drawer-title">Settings</h2>
-      <button class="drawer-close" onclick={onClose} aria-label="Close settings">✕</button>
+      <span class="drawer-title">Settings</span>
+      <button class="drawer-close" onclick={onClose} aria-label="Close">✕</button>
     </div>
 
     <div class="drawer-body">
-      <!-- Quality Preset -->
-      <section class="settings-section">
-        <h3 class="section-title">Recording Quality</h3>
-        <div class="preset-grid">
+      <!-- Quality -->
+      <div class="row">
+        <span class="label">Quality</span>
+        <div class="pill-group">
           {#each Object.entries(QUALITY_PRESETS) as [key, preset]}
             <button
-              class="preset-card"
+              class="pill"
               class:active={settings.qualityPreset === key}
               onclick={() => settingsStore.setQuality(key as 'low' | 'medium' | 'high')}
-            >
-              <span class="preset-label">{preset.label}</span>
-              <span class="preset-detail">{preset.fps}fps • {(preset.videoBitrate / 1_000_000).toFixed(1)} Mbps</span>
-            </button>
+            >{preset.label}</button>
           {/each}
         </div>
-      </section>
+      </div>
 
-      <!-- Webcam Toggle -->
-      <section class="settings-section">
-        <h3 class="section-title">Webcam</h3>
-        <label class="toggle-row">
-          <span>Show webcam overlay</span>
-          <input
-            type="checkbox"
-            checked={recording.webcamEnabled}
-            onchange={() => recordingStore.toggleWebcam()}
-            class="checkbox-input"
-          />
+      <!-- Webcam -->
+      <div class="row">
+        <span class="label">Webcam</span>
+        <label class="switch">
+          <input type="checkbox" checked={recording.webcamEnabled} onchange={() => recordingStore.toggleWebcam()} />
+          <span class="slider"></span>
         </label>
-      </section>
+      </div>
 
-      <!-- Webcam Position (only if enabled) -->
       {#if recording.webcamEnabled}
-        <section class="settings-section">
-          <h3 class="section-title">Webcam Position</h3>
-          <div class="position-grid">
+        <!-- Webcam Position -->
+        <div class="row">
+          <span class="label">Position</span>
+          <div class="pill-group">
             {#each WEBCAM_POSITIONS as pos}
               <button
-                class="position-btn"
+                class="pill small"
                 class:active={settings.webcamPosition === pos.value}
                 onclick={() => settingsStore.setWebcamPosition(pos.value)}
-              >
-                {pos.label}
-              </button>
+              >{pos.label}</button>
             {/each}
           </div>
-        </section>
+        </div>
 
         <!-- Webcam Size -->
-        <section class="settings-section">
-          <h3 class="section-title">Webcam Size</h3>
-          <div class="range-row">
+        <div class="row">
+          <span class="label">Size</span>
+          <div class="range-group">
             <input
-              type="range"
-              min="80"
-              max="300"
-              step="10"
+              type="range" min="80" max="300" step="10"
               value={settings.webcamSize}
               oninput={(e) => settingsStore.setWebcamSize(Number((e.target as HTMLInputElement).value))}
-              class="range-input"
             />
-            <span class="range-value">{settings.webcamSize}px</span>
+            <span class="range-val">{settings.webcamSize}</span>
           </div>
-        </section>
+        </div>
       {/if}
 
-      <!-- Camera Selection -->
+      <!-- Camera -->
       {#if cameras.length > 0}
-        <section class="settings-section">
-          <h3 class="section-title">Camera</h3>
-          <select
-            class="select-input"
-            value={settings.selectedCameraId ?? ''}
-            onchange={(e) => settingsStore.setCamera((e.target as HTMLSelectElement).value || null)}
-          >
-            <option value="">Default Camera</option>
+        <div class="row">
+          <span class="label">Camera</span>
+          <select class="sel" value={settings.selectedCameraId ?? ''} onchange={(e) => settingsStore.setCamera((e.target as HTMLSelectElement).value || null)}>
+            <option value="">Default</option>
             {#each cameras as cam}
               <option value={cam.deviceId}>{cam.label || `Camera ${cameras.indexOf(cam) + 1}`}</option>
             {/each}
           </select>
-        </section>
+        </div>
       {/if}
 
-      <!-- Microphone Selection -->
+      <!-- Microphone -->
       {#if microphones.length > 0}
-        <section class="settings-section">
-          <h3 class="section-title">Microphone</h3>
-          <select
-            class="select-input"
-            value={settings.selectedMicId ?? ''}
-            onchange={(e) => settingsStore.setMicrophone((e.target as HTMLSelectElement).value || null)}
-          >
-            <option value="">Default Microphone</option>
+        <div class="row">
+          <span class="label">Mic</span>
+          <select class="sel" value={settings.selectedMicId ?? ''} onchange={(e) => settingsStore.setMicrophone((e.target as HTMLSelectElement).value || null)}>
+            <option value="">Default</option>
             {#each microphones as mic}
-              <option value={mic.deviceId}>{mic.label || `Microphone ${microphones.indexOf(mic) + 1}`}</option>
+              <option value={mic.deviceId}>{mic.label || `Mic ${microphones.indexOf(mic) + 1}`}</option>
             {/each}
           </select>
-        </section>
+        </div>
       {/if}
 
       <!-- Countdown -->
-      <section class="settings-section">
-        <h3 class="section-title">Countdown</h3>
-        <label class="toggle-row">
-          <span>Show countdown before recording</span>
-          <input
-            type="checkbox"
-            checked={settings.countdownEnabled}
-            onchange={() => settingsStore.setCountdown(!settings.countdownEnabled)}
-            class="checkbox-input"
-          />
+      <div class="row">
+        <span class="label">Countdown</span>
+        <label class="switch">
+          <input type="checkbox" checked={settings.countdownEnabled} onchange={() => settingsStore.setCountdown(!settings.countdownEnabled)} />
+          <span class="slider"></span>
         </label>
-      </section>
+      </div>
     </div>
   </div>
 </div>
@@ -161,7 +129,7 @@
   .settings-backdrop {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.4);
+    background: rgba(0, 0, 0, 0.35);
     z-index: var(--z-modal-backdrop);
   }
 
@@ -170,7 +138,7 @@
     right: 0;
     top: 0;
     bottom: 0;
-    width: 340px;
+    width: 300px;
     max-width: 85vw;
     display: flex;
     flex-direction: column;
@@ -182,28 +150,28 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: var(--space-4) var(--space-5);
+    padding: 12px 16px;
     border-bottom: 1px solid var(--color-border);
     flex-shrink: 0;
   }
 
   .drawer-title {
-    font-size: var(--font-size-md);
-    font-weight: var(--font-weight-semibold);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-text-primary);
   }
 
   .drawer-close {
-    width: 28px;
-    height: 28px;
+    width: 24px;
+    height: 24px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: var(--radius-sm);
+    border-radius: 4px;
     color: var(--color-text-muted);
-    font-size: var(--font-size-sm);
-    transition: all var(--transition-fast);
+    font-size: 12px;
+    transition: all 0.15s;
   }
-
   .drawer-close:hover {
     background: var(--color-surface-hover);
     color: var(--color-text-primary);
@@ -212,162 +180,145 @@
   .drawer-body {
     flex: 1;
     overflow-y: auto;
-    padding: var(--space-4) var(--space-5);
+    padding: 12px 16px;
     display: flex;
     flex-direction: column;
-    gap: var(--space-5);
-    /* Hide scrollbar but keep scrolling */
+    gap: 14px;
     scrollbar-width: none;
     -ms-overflow-style: none;
   }
+  .drawer-body::-webkit-scrollbar { display: none; }
 
-  .drawer-body::-webkit-scrollbar {
-    display: none;
-  }
-
-  .settings-section {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-3);
-  }
-
-  .section-title {
-    font-size: var(--font-size-sm);
-    font-weight: var(--font-weight-semibold);
-    color: var(--color-text-secondary);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-  }
-
-  .preset-grid {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
-  }
-
-  .preset-card {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-1);
-    padding: var(--space-3) var(--space-4);
-    border-radius: var(--radius-md);
-    border: 1px solid var(--color-border);
-    text-align: left;
-    transition: all var(--transition-normal);
-  }
-
-  .preset-card:hover {
-    border-color: var(--color-border-hover);
-    background: var(--color-surface-hover);
-  }
-
-  .preset-card.active {
-    border-color: var(--color-primary);
-    background: rgba(108, 92, 231, 0.1);
-  }
-
-  .preset-label {
-    font-size: var(--font-size-sm);
-    font-weight: var(--font-weight-medium);
-  }
-
-  .preset-detail {
-    font-size: var(--font-size-xs);
-    color: var(--color-text-muted);
-  }
-
-  .position-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: var(--space-2);
-  }
-
-  .position-btn {
-    padding: var(--space-2) var(--space-3);
-    border-radius: var(--radius-md);
-    border: 1px solid var(--color-border);
-    font-size: var(--font-size-sm);
-    text-align: center;
-    transition: all var(--transition-normal);
-  }
-
-  .position-btn:hover {
-    border-color: var(--color-border-hover);
-    background: var(--color-surface-hover);
-  }
-
-  .position-btn.active {
-    border-color: var(--color-primary);
-    background: rgba(108, 92, 231, 0.1);
-    color: var(--color-primary-light);
-  }
-
-  .range-row {
-    display: flex;
-    align-items: center;
-    gap: var(--space-3);
-  }
-
-  .range-input {
-    flex: 1;
-    appearance: none;
-    height: 4px;
-    border-radius: 2px;
-    background: var(--color-bg-tertiary);
-    outline: none;
-  }
-
-  .range-input::-webkit-slider-thumb {
-    appearance: none;
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    background: var(--color-primary);
-    cursor: pointer;
-    transition: transform var(--transition-fast);
-  }
-
-  .range-input::-webkit-slider-thumb:hover {
-    transform: scale(1.2);
-  }
-
-  .range-value {
-    font-size: var(--font-size-sm);
-    color: var(--color-text-secondary);
-    font-variant-numeric: tabular-nums;
-    min-width: 50px;
-    text-align: right;
-  }
-
-  .select-input {
-    width: 100%;
-    padding: var(--space-2) var(--space-3);
-    border-radius: var(--radius-md);
-    border: 1px solid var(--color-border);
-    background: var(--color-surface);
-    color: var(--color-text-primary);
-    font-size: var(--font-size-sm);
-    outline: none;
-    transition: border-color var(--transition-fast);
-  }
-
-  .select-input:focus {
-    border-color: var(--color-border-focus);
-  }
-
-  .toggle-row {
+  /* --- Row layout --- */
+  .row {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    font-size: var(--font-size-sm);
-    color: var(--color-text-secondary);
-    cursor: pointer;
+    gap: 8px;
+    min-height: 28px;
   }
 
-  .checkbox-input {
-    width: 18px;
-    height: 18px;
-    accent-color: var(--color-primary);
+  .label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+
+  /* --- Pill buttons --- */
+  .pill-group {
+    display: flex;
+    gap: 4px;
+  }
+
+  .pill {
+    padding: 4px 10px;
+    border-radius: 100px;
+    border: 1px solid var(--color-border);
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .pill:hover {
+    border-color: var(--color-border-hover);
+    background: var(--color-surface-hover);
+  }
+  .pill.active {
+    border-color: var(--color-primary);
+    background: rgba(108, 92, 231, 0.15);
+    color: var(--color-primary-light);
+  }
+  .pill.small {
+    padding: 3px 7px;
+    font-size: 10px;
+  }
+
+  /* --- Toggle switch --- */
+  .switch {
+    position: relative;
+    display: inline-block;
+    width: 36px;
+    height: 20px;
+    flex-shrink: 0;
+  }
+  .switch input { opacity: 0; width: 0; height: 0; position: absolute; }
+  .slider {
+    position: absolute;
+    inset: 0;
+    background: var(--color-bg-tertiary);
+    border-radius: 20px;
+    transition: background 0.2s;
     cursor: pointer;
+  }
+  .slider::before {
+    content: '';
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    left: 2px;
+    bottom: 2px;
+    background: white;
+    border-radius: 50%;
+    transition: transform 0.2s;
+  }
+  .switch input:checked + .slider {
+    background: var(--color-primary);
+  }
+  .switch input:checked + .slider::before {
+    transform: translateX(16px);
+  }
+
+  /* --- Range --- */
+  .range-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
+    max-width: 160px;
+  }
+  .range-group input[type="range"] {
+    flex: 1;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 3px;
+    background: var(--color-bg-tertiary);
+    border-radius: 2px;
+    outline: none;
+    border: none;
+    padding: 0;
+  }
+  .range-group input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--color-primary);
+    cursor: pointer;
+  }
+  .range-val {
+    font-size: 11px;
+    color: var(--color-text-muted);
+    font-variant-numeric: tabular-nums;
+    min-width: 28px;
+    text-align: right;
+  }
+
+  /* --- Select --- */
+  .sel {
+    font-size: 11px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    color: var(--color-text-primary);
+    outline: none;
+    max-width: 160px;
+    cursor: pointer;
+  }
+  .sel:focus {
+    border-color: var(--color-border-focus);
   }
 </style>
