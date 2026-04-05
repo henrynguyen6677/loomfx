@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { settingsStore } from '$lib/stores/settingsStore';
+  import { recordingStore } from '$lib/stores/recordingStore';
   import { QUALITY_PRESETS, WEBCAM_POSITIONS, type WebcamPosition } from '$lib/utils/constants';
 
   interface Props {
@@ -13,8 +14,8 @@
   let microphones = $state<MediaDeviceInfo[]>([]);
 
   const settings = $derived($settingsStore);
+  const recording = $derived($recordingStore);
 
-  // Only enumerate devices ONCE on mount, not on every reactive change
   onMount(() => {
     navigator.mediaDevices?.enumerateDevices().then((devices) => {
       cameras = devices.filter((d) => d.kind === 'videoinput');
@@ -56,38 +57,54 @@
         </div>
       </section>
 
-      <!-- Webcam Position -->
+      <!-- Webcam Toggle -->
       <section class="settings-section">
-        <h3 class="section-title">Webcam Position</h3>
-        <div class="position-grid">
-          {#each WEBCAM_POSITIONS as pos}
-            <button
-              class="position-btn"
-              class:active={settings.webcamPosition === pos.value}
-              onclick={() => settingsStore.setWebcamPosition(pos.value)}
-            >
-              {pos.label}
-            </button>
-          {/each}
-        </div>
+        <h3 class="section-title">Webcam</h3>
+        <label class="toggle-row">
+          <span>Show webcam overlay</span>
+          <input
+            type="checkbox"
+            checked={recording.webcamEnabled}
+            onchange={() => recordingStore.toggleWebcam()}
+            class="checkbox-input"
+          />
+        </label>
       </section>
 
-      <!-- Webcam Size -->
-      <section class="settings-section">
-        <h3 class="section-title">Webcam Size</h3>
-        <div class="range-row">
-          <input
-            type="range"
-            min="80"
-            max="300"
-            step="10"
-            value={settings.webcamSize}
-            oninput={(e) => settingsStore.setWebcamSize(Number((e.target as HTMLInputElement).value))}
-            class="range-input"
-          />
-          <span class="range-value">{settings.webcamSize}px</span>
-        </div>
-      </section>
+      <!-- Webcam Position (only if enabled) -->
+      {#if recording.webcamEnabled}
+        <section class="settings-section">
+          <h3 class="section-title">Webcam Position</h3>
+          <div class="position-grid">
+            {#each WEBCAM_POSITIONS as pos}
+              <button
+                class="position-btn"
+                class:active={settings.webcamPosition === pos.value}
+                onclick={() => settingsStore.setWebcamPosition(pos.value)}
+              >
+                {pos.label}
+              </button>
+            {/each}
+          </div>
+        </section>
+
+        <!-- Webcam Size -->
+        <section class="settings-section">
+          <h3 class="section-title">Webcam Size</h3>
+          <div class="range-row">
+            <input
+              type="range"
+              min="80"
+              max="300"
+              step="10"
+              value={settings.webcamSize}
+              oninput={(e) => settingsStore.setWebcamSize(Number((e.target as HTMLInputElement).value))}
+              class="range-input"
+            />
+            <span class="range-value">{settings.webcamSize}px</span>
+          </div>
+        </section>
+      {/if}
 
       <!-- Camera Selection -->
       {#if cameras.length > 0}
