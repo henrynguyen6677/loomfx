@@ -322,3 +322,26 @@ img, video, canvas {
   background: var(--color-primary);
   color: white;
 }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 768px) {
+  :root {
+    --header-height: 48px;
+    --toolbar-height: 64px;
+    --space-6: 1rem;
+    --space-8: 1.5rem;
+    --font-size-xl: 1.25rem;
+    --font-size-2xl: 1.5rem;
+    --font-size-3xl: 2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  :root {
+    --header-height: 44px;
+    --toolbar-height: 56px;
+    --space-6: 0.75rem;
+    --font-size-lg: 1.0625rem;
+    --font-size-xl: 1.125rem;
+  }
+}

@@ -146,7 +146,6 @@
     inset: 0;
     background: rgba(0, 0, 0, 0.4);
     z-index: var(--z-modal-backdrop);
-    animation: fade-in 0.15s ease;
   }
 
   .settings-drawer {

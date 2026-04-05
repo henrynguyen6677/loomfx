@@ -305,4 +305,24 @@
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
   }
+
+  @media (max-width: 768px) {
+    .toolbar {
+      min-width: 320px;
+      padding: 0 var(--space-4);
+    }
+    .control-btn.primary { width: 46px; height: 46px; }
+    .control-btn.secondary { width: 36px; height: 36px; }
+    .toggle-btn { width: 36px; height: 36px; }
+  }
+
+  @media (max-width: 480px) {
+    .toolbar {
+      min-width: 280px;
+      max-width: 95vw;
+      padding: 0 var(--space-3);
+    }
+    .toolbar-timer { min-width: 60px; }
+    .timer-text { font-size: var(--font-size-sm); }
+  }
 </style>
