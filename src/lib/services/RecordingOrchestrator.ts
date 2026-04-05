@@ -247,9 +247,8 @@ export class RecordingOrchestrator {
             chunks: this.chunks.length,
           });
 
-          triggerDownload(blob, filename);
-          this.emitToast('success', `Downloaded: ${filename}`);
           recordingStore.setOutput(blob, filename);
+          this.emitToast('success', 'Recording complete!');
         } catch (err) {
           console.error('[LoomFX] Save failed:', err);
           this.emitToast('error', 'Failed to save');
