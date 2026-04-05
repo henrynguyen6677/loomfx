@@ -35,23 +35,26 @@
     </div>
 
     <div class="drawer-body">
-      <!-- Quality -->
-      <div class="row">
-        <span class="label">Quality</span>
-        <div class="pill-group">
+      <!-- Quality (original card style) -->
+      <section class="section">
+        <h3 class="section-title">Recording Quality</h3>
+        <div class="preset-grid">
           {#each Object.entries(QUALITY_PRESETS) as [key, preset]}
             <button
-              class="pill"
+              class="preset-card"
               class:active={settings.qualityPreset === key}
               onclick={() => settingsStore.setQuality(key as 'low' | 'medium' | 'high')}
-            >{preset.label}</button>
+            >
+              <span class="preset-label">{preset.label}</span>
+              <span class="preset-detail">{preset.fps}fps • {(preset.videoBitrate / 1_000_000).toFixed(1)} Mbps</span>
+            </button>
           {/each}
         </div>
-      </div>
+      </section>
 
       <!-- Webcam -->
       <div class="row">
-        <span class="label">Webcam</span>
+        <span class="label">Webcam overlay</span>
         <label class="switch">
           <input type="checkbox" checked={recording.webcamEnabled} onchange={() => recordingStore.toggleWebcam()} />
           <span class="slider"></span>
@@ -65,7 +68,7 @@
           <div class="pill-group">
             {#each WEBCAM_POSITIONS as pos}
               <button
-                class="pill small"
+                class="pill"
                 class:active={settings.webcamPosition === pos.value}
                 onclick={() => settingsStore.setWebcamPosition(pos.value)}
               >{pos.label}</button>
@@ -82,7 +85,7 @@
               value={settings.webcamSize}
               oninput={(e) => settingsStore.setWebcamSize(Number((e.target as HTMLInputElement).value))}
             />
-            <span class="range-val">{settings.webcamSize}</span>
+            <span class="range-val">{settings.webcamSize}px</span>
           </div>
         </div>
       {/if}
@@ -103,7 +106,7 @@
       <!-- Microphone -->
       {#if microphones.length > 0}
         <div class="row">
-          <span class="label">Mic</span>
+          <span class="label">Microphone</span>
           <select class="sel" value={settings.selectedMicId ?? ''} onchange={(e) => settingsStore.setMicrophone((e.target as HTMLSelectElement).value || null)}>
             <option value="">Default</option>
             {#each microphones as mic}
@@ -115,7 +118,7 @@
 
       <!-- Countdown -->
       <div class="row">
-        <span class="label">Countdown</span>
+        <span class="label">Countdown timer</span>
         <label class="switch">
           <input type="checkbox" checked={settings.countdownEnabled} onchange={() => settingsStore.setCountdown(!settings.countdownEnabled)} />
           <span class="slider"></span>
@@ -138,7 +141,7 @@
     right: 0;
     top: 0;
     bottom: 0;
-    width: 300px;
+    width: 320px;
     max-width: 85vw;
     display: flex;
     flex-direction: column;
@@ -150,26 +153,26 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 12px 16px;
+    padding: 14px 18px;
     border-bottom: 1px solid var(--color-border);
     flex-shrink: 0;
   }
 
   .drawer-title {
-    font-size: 14px;
-    font-weight: 600;
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-semibold);
     color: var(--color-text-primary);
   }
 
   .drawer-close {
-    width: 24px;
-    height: 24px;
+    width: 26px;
+    height: 26px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
     color: var(--color-text-muted);
-    font-size: 12px;
+    font-size: var(--font-size-sm);
     transition: all 0.15s;
   }
   .drawer-close:hover {
@@ -180,27 +183,75 @@
   .drawer-body {
     flex: 1;
     overflow-y: auto;
-    padding: 12px 16px;
+    padding: 14px 18px;
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 16px;
     scrollbar-width: none;
     -ms-overflow-style: none;
   }
   .drawer-body::-webkit-scrollbar { display: none; }
+
+  /* --- Quality section (original card style) --- */
+  .section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .section-title {
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .preset-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .preset-card {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 10px 14px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border);
+    text-align: left;
+    transition: all 0.15s;
+  }
+  .preset-card:hover {
+    border-color: var(--color-border-hover);
+    background: var(--color-surface-hover);
+  }
+  .preset-card.active {
+    border-color: var(--color-primary);
+    background: rgba(108, 92, 231, 0.1);
+  }
+  .preset-label {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+  }
+  .preset-detail {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+  }
 
   /* --- Row layout --- */
   .row {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 8px;
-    min-height: 28px;
+    gap: 10px;
+    min-height: 32px;
   }
 
   .label {
-    font-size: 12px;
-    font-weight: 500;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
     color: var(--color-text-secondary);
     flex-shrink: 0;
     white-space: nowrap;
@@ -216,8 +267,8 @@
     padding: 4px 10px;
     border-radius: 100px;
     border: 1px solid var(--color-border);
-    font-size: 11px;
-    font-weight: 500;
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
     color: var(--color-text-secondary);
     transition: all 0.15s;
     white-space: nowrap;
@@ -231,10 +282,6 @@
     background: rgba(108, 92, 231, 0.15);
     color: var(--color-primary-light);
   }
-  .pill.small {
-    padding: 3px 7px;
-    font-size: 10px;
-  }
 
   /* --- Toggle switch --- */
   .switch {
@@ -243,6 +290,7 @@
     width: 36px;
     height: 20px;
     flex-shrink: 0;
+    cursor: pointer;
   }
   .switch input { opacity: 0; width: 0; height: 0; position: absolute; }
   .slider {
@@ -275,20 +323,22 @@
   .range-group {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
     flex: 1;
-    max-width: 160px;
+    max-width: 170px;
   }
   .range-group input[type="range"] {
     flex: 1;
     -webkit-appearance: none;
     appearance: none;
-    height: 3px;
+    height: 4px;
     background: var(--color-bg-tertiary);
     border-radius: 2px;
     outline: none;
     border: none;
     padding: 0;
+    margin: 0;
+    cursor: pointer;
   }
   .range-group input[type="range"]::-webkit-slider-thumb {
     -webkit-appearance: none;
@@ -297,25 +347,34 @@
     border-radius: 50%;
     background: var(--color-primary);
     cursor: pointer;
+    margin-top: -5px;
+  }
+  .range-group input[type="range"]::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--color-primary);
+    cursor: pointer;
+    border: none;
   }
   .range-val {
-    font-size: 11px;
+    font-size: var(--font-size-xs);
     color: var(--color-text-muted);
     font-variant-numeric: tabular-nums;
-    min-width: 28px;
+    min-width: 36px;
     text-align: right;
   }
 
   /* --- Select --- */
   .sel {
-    font-size: 11px;
-    padding: 4px 8px;
-    border-radius: 6px;
+    font-size: var(--font-size-sm);
+    padding: 5px 10px;
+    border-radius: var(--radius-md);
     border: 1px solid var(--color-border);
     background: var(--color-surface);
     color: var(--color-text-primary);
     outline: none;
-    max-width: 160px;
+    max-width: 170px;
     cursor: pointer;
   }
   .sel:focus {
