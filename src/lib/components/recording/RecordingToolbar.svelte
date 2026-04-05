@@ -308,21 +308,31 @@
 
   @media (max-width: 768px) {
     .toolbar {
-      min-width: 320px;
+      min-width: auto;
+      width: calc(100% - var(--space-6));
+      max-width: 420px;
       padding: 0 var(--space-4);
+      bottom: var(--space-3);
+      height: 60px;
     }
-    .control-btn.primary { width: 46px; height: 46px; }
-    .control-btn.secondary { width: 36px; height: 36px; }
-    .toggle-btn { width: 36px; height: 36px; }
+    .control-btn.primary { width: 44px; height: 44px; }
+    .control-btn.secondary { width: 34px; height: 34px; }
+    .toggle-btn { width: 34px; height: 34px; }
   }
 
   @media (max-width: 480px) {
     .toolbar {
-      min-width: 280px;
-      max-width: 95vw;
+      width: calc(100% - var(--space-4));
+      max-width: none;
       padding: 0 var(--space-3);
+      bottom: var(--space-2);
+      height: 54px;
+      border-radius: var(--radius-xl);
     }
-    .toolbar-timer { min-width: 60px; }
-    .timer-text { font-size: var(--font-size-sm); }
+    .toolbar-timer { min-width: 50px; }
+    .timer-text { font-size: var(--font-size-xs); }
+    .control-btn.primary { width: 40px; height: 40px; }
+    .control-btn.secondary { width: 30px; height: 30px; }
+    .toggle-btn { width: 30px; height: 30px; }
   }
 </style>

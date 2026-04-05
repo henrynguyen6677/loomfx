@@ -47,4 +47,16 @@
     overflow: hidden;
     width: 100%;
   }
+
+  @media (max-width: 768px) {
+    .app-main {
+      padding: calc(var(--header-height) + var(--space-2)) var(--space-3) calc(var(--toolbar-height) + var(--space-3) + var(--space-4)) var(--space-3);
+    }
+  }
+
+  @media (max-width: 480px) {
+    .app-main {
+      padding: calc(var(--header-height) + var(--space-1)) var(--space-2) calc(var(--toolbar-height) + var(--space-2) + var(--space-2)) var(--space-2);
+    }
+  }
 </style>

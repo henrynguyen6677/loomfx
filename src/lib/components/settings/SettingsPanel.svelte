@@ -158,7 +158,6 @@
     display: flex;
     flex-direction: column;
     z-index: var(--z-modal);
-    animation: slide-in-right 0.3s var(--transition-smooth);
     overflow: hidden;
   }
 
