@@ -330,33 +330,6 @@
   }
   .range-group input[type="range"] {
     flex: 1;
-    -webkit-appearance: none;
-    appearance: none;
-    height: 4px;
-    background: var(--color-bg-tertiary);
-    border-radius: 2px;
-    outline: none;
-    border: none;
-    padding: 0;
-    margin: 0;
-    cursor: pointer;
-  }
-  .range-group input[type="range"]::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 14px;
-    height: 14px;
-    border-radius: 50%;
-    background: var(--color-primary);
-    cursor: pointer;
-    margin-top: -5px;
-  }
-  .range-group input[type="range"]::-moz-range-thumb {
-    width: 14px;
-    height: 14px;
-    border-radius: 50%;
-    background: var(--color-primary);
-    cursor: pointer;
-    border: none;
   }
   .range-val {
     font-size: var(--font-size-xs);
