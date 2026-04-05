@@ -1,42 +1,196 @@
-# sv
+<div align="center">
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+# 🎬 LoomFX
 
-## Creating a project
+### Free, Local-First Screen Recorder — No Cloud, No Signup, No Limits
 
-If you're seeing this, you've probably already done this step. Congrats!
+**Record your screen, webcam, and audio — all processed 100% on your device.**
 
-```sh
-# create a new project
-npx sv create my-app
-```
+[✨ Try it live](https://loomfx.vercel.app) · [🐛 Report Bug](https://github.com/henrynguyen/loomfx/issues) · [💡 Request Feature](https://github.com/henrynguyen/loomfx/issues)
 
-To recreate this project with the same configuration:
+---
 
-```sh
-# recreate this project
-npx sv@0.14.0 create --template minimal --types ts --no-install ./
-```
+</div>
 
-## Developing
+## 🚀 Why LoomFX?
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+Most screen recorders upload your videos to the cloud, require accounts, and charge monthly fees. **LoomFX is different.**
 
-```sh
+| | LoomFX | Loom (Free) | OBS Studio |
+|---|:---:|:---:|:---:|
+| **100% Local** | ✅ | ❌ Cloud-based | ✅ |
+| **No Account Required** | ✅ | ❌ | ✅ |
+| **Works in Browser** | ✅ | ✅ | ❌ Desktop app |
+| **Webcam Overlay** | ✅ Circle bubble | ✅ | ✅ |
+| **System Audio** | ✅ | ✅ | ✅ |
+| **Open Source** | ✅ MIT | ❌ | ✅ |
+| **No Upload Limit** | ✅ Unlimited | ❌ 5 min | ✅ |
+| **Zero Install** | ✅ | ✅ | ❌ |
+
+> **Your recordings never leave your machine.** No servers, no uploads, no data collection.
+
+---
+
+## ✨ Features
+
+🖥️ **Screen Recording** — Capture any tab, window, or entire screen in up to 1080p
+
+🎥 **Webcam Overlay** — Circle webcam bubble baked directly into your video, with adjustable position & size
+
+🎙️ **Audio Capture** — Mix microphone + system audio seamlessly
+
+⏸️ **Pause & Resume** — Take breaks during long recordings without creating multiple files
+
+⌨️ **Keyboard Shortcuts** — `R` to record, `P` to pause, `S` to stop — no fumbling with buttons
+
+⚙️ **Quality Presets** — Low / Medium / High — pick the right balance of size and clarity
+
+🎨 **Minimal UI** — Glassmorphism design, dark mode, compact settings drawer
+
+📱 **Responsive** — Works on desktop, tablet, and mobile viewports
+
+🔒 **Privacy First** — Zero telemetry, zero analytics, zero server calls
+
+---
+
+## 🖼️ Preview
+
+<div align="center">
+
+| Main Interface | Settings Drawer |
+|:---:|:---:|
+| Clean, distraction-free recording UI | Compact, minimal settings with iOS-style toggles |
+
+</div>
+
+---
+
+## 🏁 Quick Start
+
+### Use Online (Recommended)
+
+Just open **[loomfx.vercel.app](https://loomfx.vercel.app)** in Chrome or Edge. That's it.
+
+### Run Locally
+
+```bash
+# Clone the repo
+git clone https://github.com/henrynguyen/loomfx.git
+cd loomfx
+
+# Install dependencies
+npm install
+
+# Start dev server
 npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
 ```
 
-## Building
+Open `http://localhost:5173` and start recording.
 
-To create a production version of your app:
+---
 
-```sh
+## 🛠️ Tech Stack
+
+| Layer | Technology |
+|---|---|
+| **Framework** | SvelteKit 5 (Svelte 5 Runes) |
+| **Language** | TypeScript |
+| **Styling** | CSS Variables Design System |
+| **Screen Capture** | `getDisplayMedia` API |
+| **Video Encoding** | `MediaRecorder` + Canvas Compositor |
+| **Audio** | Web Audio API (`AudioContext` mixer) |
+| **Storage** | Blob URL → Direct download |
+| **Deployment** | Vercel (Static adapter) |
+| **Testing** | Vitest (51 tests passing) |
+
+---
+
+## 📋 How It Works
+
+```
+┌──────────────┐     ┌──────────────┐     ┌──────────────┐
+│   Screen     │     │   Webcam     │     │  Microphone  │
+│ getDisplay   │     │ getUserMedia │     │ getUserMedia  │
+│   Media      │     │              │     │              │
+└──────┬───────┘     └──────┬───────┘     └──────┬───────┘
+       │                    │                    │
+       ▼                    ▼                    ▼
+┌──────────────────────────────┐     ┌──────────────────┐
+│     Canvas Compositor        │     │   Audio Mixer     │
+│  Screen + Webcam circle      │     │  Mic + System     │
+└──────────────┬───────────────┘     └────────┬─────────┘
+               │                              │
+               ▼                              ▼
+         ┌─────────────────────────────────────────┐
+         │           MediaRecorder                  │
+         │     Video (Canvas) + Audio (Mixed)       │
+         └────────────────┬────────────────────────┘
+                          │
+                          ▼
+                  ┌───────────────┐
+                  │  Blob → File  │
+                  │   Download    │
+                  └───────────────┘
+```
+
+---
+
+## ⌨️ Keyboard Shortcuts
+
+| Key | Action |
+|:---:|---|
+| `R` | Start recording |
+| `P` | Pause / Resume |
+| `S` | Stop recording |
+| `W` | Toggle webcam |
+| `M` | Toggle microphone |
+
+---
+
+## 🧪 Development
+
+```bash
+# Run tests
+npm run test
+
+# Type check
+npm run check
+
+# Build for production
 npm run build
+
+# Preview production build
+npm run preview
 ```
 
-You can preview the production build with `npm run preview`.
+---
 
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+## 🗺️ Roadmap
+
+- [x] Screen + webcam + audio recording
+- [x] Canvas compositor (webcam baked into video)
+- [x] Pause / Resume
+- [x] Minimal settings drawer
+- [x] Responsive design
+- [x] Deploy to Vercel
+- [ ] PWA support (offline + installable)
+- [ ] WebCodecs encoding (better quality control)
+- [ ] OPFS storage (Firefox/Safari support)
+- [ ] Video trimming before download
+- [ ] Custom recording area selection
+
+---
+
+## 📄 License
+
+MIT — free for personal and commercial use.
+
+---
+
+<div align="center">
+
+**Built with ❤️ for people who value privacy.**
+
+[⬆ Back to top](#-loomfx)
+
+</div>
