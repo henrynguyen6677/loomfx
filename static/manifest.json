@@ -1,0 +1,19 @@
+{
+  "name": "LoomFX — Screen Recorder",
+  "short_name": "LoomFX",
+  "description": "Free, local-first screen recorder. No cloud, no limits, no cost.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f0f23",
+  "theme_color": "#6C5CE7",
+  "orientation": "landscape",
+  "categories": ["productivity", "utilities"],
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
