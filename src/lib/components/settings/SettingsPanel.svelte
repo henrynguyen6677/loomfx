@@ -153,8 +153,8 @@
     right: 0;
     top: 0;
     bottom: 0;
-    width: 380px;
-    max-width: 90vw;
+    width: 340px;
+    max-width: 85vw;
     display: flex;
     flex-direction: column;
     z-index: var(--z-modal);
@@ -165,24 +165,25 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: var(--space-5) var(--space-6);
+    padding: var(--space-4) var(--space-5);
     border-bottom: 1px solid var(--color-border);
     flex-shrink: 0;
   }
 
   .drawer-title {
-    font-size: var(--font-size-lg);
+    font-size: var(--font-size-md);
     font-weight: var(--font-weight-semibold);
   }
 
   .drawer-close {
-    width: 32px;
-    height: 32px;
+    width: 28px;
+    height: 28px;
     display: flex;
     align-items: center;
     justify-content: center;
     border-radius: var(--radius-sm);
     color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
     transition: all var(--transition-fast);
   }
 
@@ -194,10 +195,17 @@
   .drawer-body {
     flex: 1;
     overflow-y: auto;
-    padding: var(--space-6);
+    padding: var(--space-4) var(--space-5);
     display: flex;
     flex-direction: column;
-    gap: var(--space-6);
+    gap: var(--space-5);
+    /* Hide scrollbar but keep scrolling */
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .drawer-body::-webkit-scrollbar {
+    display: none;
   }
 
   .settings-section {
