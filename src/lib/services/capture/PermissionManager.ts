@@ -132,10 +132,9 @@ export class PermissionManager {
   private classifyError(err: Error, source: string): string {
     switch (err.name) {
       case 'NotAllowedError':
-        if (source === 'screen' && this.caps.isMacOS) {
-          return 'MACOS_SCREEN_PERMISSION';
-        }
-        return `PERMISSION_DENIED_${source.toUpperCase()}`;
+        // User clicked Cancel on the screen picker — NOT a permission issue
+        // macOS permission issues are detected via black-screen check in requestScreen()
+        return `USER_CANCELLED_${source.toUpperCase()}`;
 
       case 'NotFoundError':
         return `DEVICE_NOT_FOUND_${source.toUpperCase()}`;

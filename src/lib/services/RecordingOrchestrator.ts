@@ -77,7 +77,13 @@ export class RecordingOrchestrator {
       // 1. Screen capture (REQUIRED)
       const screenResult = await this.permissionManager.requestScreen(true);
       if (!screenResult.granted) {
-        this.emitPermissionError(screenResult.errorCode);
+        // User just clicked Cancel — go back to idle silently
+        if (screenResult.errorCode.startsWith('USER_CANCELLED')) {
+          console.log('[LoomFX] User cancelled screen picker');
+        } else {
+          // Actual permission error (e.g. macOS blocked)
+          this.emitPermissionError(screenResult.errorCode);
+        }
         recordingStore.setStatus('idle');
         this.isStarting = false;
         return;
