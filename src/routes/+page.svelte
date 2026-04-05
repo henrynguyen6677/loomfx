@@ -155,7 +155,6 @@
     background: rgba(15, 15, 35, 0.85);
     backdrop-filter: blur(8px);
     z-index: var(--z-modal);
-    animation: fade-in 0.3s ease;
   }
 
   .completed-card {
@@ -164,7 +163,6 @@
     padding: var(--space-10);
     border-radius: var(--radius-xl);
     text-align: center;
-    animation: scale-in 0.4s var(--transition-spring);
   }
 
   .completed-icon {
