@@ -199,10 +199,21 @@ input, select, textarea {
   padding: var(--space-2) var(--space-3);
   outline: none;
   transition: border-color var(--transition-normal);
-  /* Re-enable text selection for form inputs */
+}
+
+/* Text inputs: allow selection and text cursor */
+input[type="text"], input[type="email"], input[type="password"],
+input[type="search"], input[type="url"], input[type="number"],
+textarea {
   -webkit-user-select: text;
   user-select: text;
   cursor: text;
+}
+
+/* Interactive inputs: pointer cursor */
+input[type="range"], input[type="checkbox"], input[type="radio"],
+select {
+  cursor: pointer;
 }
 
 input:focus, select:focus, textarea:focus {

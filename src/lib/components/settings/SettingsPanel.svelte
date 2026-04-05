@@ -63,23 +63,23 @@
 
       {#if recording.webcamEnabled}
         <!-- Webcam Position -->
-        <div class="row">
-          <span class="label">Position</span>
-          <div class="pill-group">
+        <section class="section">
+          <h3 class="section-title">Webcam Position</h3>
+          <div class="position-grid">
             {#each WEBCAM_POSITIONS as pos}
               <button
-                class="pill"
+                class="position-btn"
                 class:active={settings.webcamPosition === pos.value}
                 onclick={() => settingsStore.setWebcamPosition(pos.value)}
               >{pos.label}</button>
             {/each}
           </div>
-        </div>
+        </section>
 
         <!-- Webcam Size -->
-        <div class="row">
-          <span class="label">Size</span>
-          <div class="range-group">
+        <section class="section">
+          <h3 class="section-title">Webcam Size</h3>
+          <div class="range-group full">
             <input
               type="range" min="80" max="300" step="10"
               value={settings.webcamSize}
@@ -87,7 +87,7 @@
             />
             <span class="range-val">{settings.webcamSize}px</span>
           </div>
-        </div>
+        </section>
       {/if}
 
       <!-- Camera -->
@@ -257,29 +257,27 @@
     white-space: nowrap;
   }
 
-  /* --- Pill buttons --- */
-  .pill-group {
-    display: flex;
-    gap: 4px;
+  /* --- Position grid (2x2) --- */
+  .position-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
   }
-
-  .pill {
-    padding: 4px 10px;
-    border-radius: 100px;
+  .position-btn {
+    padding: 6px 10px;
+    border-radius: var(--radius-md);
     border: 1px solid var(--color-border);
     font-size: var(--font-size-xs);
-    font-weight: var(--font-weight-medium);
-    color: var(--color-text-secondary);
+    text-align: center;
     transition: all 0.15s;
-    white-space: nowrap;
   }
-  .pill:hover {
+  .position-btn:hover {
     border-color: var(--color-border-hover);
     background: var(--color-surface-hover);
   }
-  .pill.active {
+  .position-btn.active {
     border-color: var(--color-primary);
-    background: rgba(108, 92, 231, 0.15);
+    background: rgba(108, 92, 231, 0.1);
     color: var(--color-primary-light);
   }
 
@@ -326,6 +324,9 @@
     gap: 8px;
     flex: 1;
     max-width: 170px;
+  }
+  .range-group.full {
+    max-width: none;
   }
   .range-group input[type="range"] {
     flex: 1;
