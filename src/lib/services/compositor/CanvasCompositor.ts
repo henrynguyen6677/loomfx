@@ -60,7 +60,9 @@ export class CanvasCompositor {
     video.autoplay = true;
     video.muted = true;
     video.playsInline = true;
-    video.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;opacity:0;pointer-events:none;';
+    // IMPORTANT: Do NOT use opacity:0 or off-screen position — browser won't decode frames.
+    // Instead, keep visible but behind everything with z-index:-1
+    video.style.cssText = 'position:fixed;top:0;left:0;width:1px;height:1px;pointer-events:none;z-index:-1;';
     document.body.appendChild(video);
     return video;
   }

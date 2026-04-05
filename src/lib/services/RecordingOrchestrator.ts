@@ -1,15 +1,15 @@
 /**
- * RecordingOrchestrator (v3 — Direct Recording)
+ * RecordingOrchestrator (v4 — Canvas Compositor for Webcam)
  *
- * Records the raw screen stream directly with MediaRecorder.
- * No canvas compositor in the recording pipeline = no black video bug.
- * Webcam bubble is a CSS overlay (like Loom), not baked into the video.
+ * When webcam is enabled: Uses CanvasCompositor to bake webcam circle into video.
+ * When webcam is disabled: Records raw screen stream directly.
  *
- * Flow: getDisplayMedia → MediaRecorder → Blob → Download
+ * Flow: getDisplayMedia → [Compositor if webcam] → MediaRecorder → Blob → Download
  */
 
 import { PermissionManager } from '$lib/services/capture/PermissionManager';
 import { AudioMixer } from '$lib/services/compositor/AudioMixer';
+import { CanvasCompositor } from '$lib/services/compositor/CanvasCompositor';
 import { triggerDownload } from '$lib/services/storage/StorageAdapter';
 import { recordingStore } from '$lib/stores/recordingStore';
 import { settingsStore } from '$lib/stores/settingsStore';
@@ -19,6 +19,7 @@ import { get } from 'svelte/store';
 export class RecordingOrchestrator {
   private permissionManager = new PermissionManager();
   private audioMixer: AudioMixer | null = null;
+  private compositor: CanvasCompositor | null = null;
   private recorder: MediaRecorder | null = null;
 
   private screenStream: MediaStream | null = null;
@@ -54,18 +55,17 @@ export class RecordingOrchestrator {
     const settings = get(settingsStore);
     const preset = QUALITY_PRESETS[settings.qualityPreset];
     const recordingState = get(recordingStore);
+    const useWebcam = recordingState.webcamEnabled;
 
     console.log('[LoomFX] Starting recording...', {
       preset: settings.qualityPreset,
-      webcam: recordingState.webcamEnabled,
+      webcam: useWebcam,
       mic: recordingState.micEnabled,
     });
 
     try {
-      // Check requirements
       const { ok, missing } = this.permissionManager.checkRequirements();
       if (!ok) {
-        console.error('[LoomFX] Requirements not met:', missing);
         this.emitToast('error', missing[0]);
         recordingStore.setError(missing[0]);
         this.isStarting = false;
@@ -74,11 +74,9 @@ export class RecordingOrchestrator {
 
       recordingStore.setStatus('requesting');
 
-      // 1. Request screen capture (REQUIRED)
-      console.log('[LoomFX] Requesting screen capture...');
+      // 1. Screen capture (REQUIRED)
       const screenResult = await this.permissionManager.requestScreen(true);
       if (!screenResult.granted) {
-        console.warn('[LoomFX] Screen capture denied:', screenResult.errorCode);
         this.emitPermissionError(screenResult.errorCode);
         recordingStore.setStatus('idle');
         this.isStarting = false;
@@ -86,29 +84,21 @@ export class RecordingOrchestrator {
       }
       this.screenStream = screenResult.stream;
 
-      // Auto-stop when user clicks browser "Stop sharing"
       const videoTrack = this.screenStream.getVideoTracks()[0];
-      if (videoTrack) {
-        videoTrack.addEventListener('ended', () => {
-          window.dispatchEvent(new CustomEvent('loomfx:screen-ended'));
-        });
-      }
-
-      const screenSettings = videoTrack?.getSettings();
-      console.log('[LoomFX] Screen capture granted ✓', {
-        width: screenSettings?.width,
-        height: screenSettings?.height,
-        frameRate: screenSettings?.frameRate,
+      videoTrack?.addEventListener('ended', () => {
+        window.dispatchEvent(new CustomEvent('loomfx:screen-ended'));
       });
 
-      // Dispatch screen stream to LivePreview
+      const vs = videoTrack?.getSettings();
+      console.log('[LoomFX] Screen ✓', { w: vs?.width, h: vs?.height });
+
+      // Dispatch to LivePreview
       window.dispatchEvent(
         new CustomEvent('loomfx:screen-stream', { detail: { stream: this.screenStream } })
       );
 
-      // 2. Request camera (OPTIONAL)
-      if (recordingState.webcamEnabled) {
-        console.log('[LoomFX] Requesting camera...');
+      // 2. Camera (OPTIONAL)
+      if (useWebcam) {
         const camResult = await this.permissionManager.requestCamera(
           settings.selectedCameraId ?? undefined
         );
@@ -117,63 +107,74 @@ export class RecordingOrchestrator {
           window.dispatchEvent(
             new CustomEvent('loomfx:webcam-stream', { detail: { stream: this.webcamStream } })
           );
-          console.log('[LoomFX] Camera granted ✓');
+          console.log('[LoomFX] Camera ✓');
         } else {
           recordingStore.toggleWebcam();
           this.emitToast('warning', 'Camera unavailable — recording without webcam');
-          console.warn('[LoomFX] Camera denied, continuing without');
         }
       }
 
-      // 3. Request microphone (OPTIONAL)
+      // 3. Microphone (OPTIONAL)
       if (recordingState.micEnabled) {
-        console.log('[LoomFX] Requesting microphone...');
         const micResult = await this.permissionManager.requestMicrophone(
           settings.selectedMicId ?? undefined
         );
         if (micResult.granted) {
           this.micStream = micResult.stream;
-          console.log('[LoomFX] Microphone granted ✓');
+          console.log('[LoomFX] Mic ✓');
         } else {
           recordingStore.toggleMic();
-          this.emitToast('warning', 'Microphone unavailable — recording without audio');
-          console.warn('[LoomFX] Mic denied, continuing silently');
+          this.emitToast('warning', 'Microphone unavailable — recording silently');
         }
       }
 
-      // 4. Build recording stream: screen video + mixed audio
+      // 4. Build recording stream
       const recordingStream = new MediaStream();
+      const hasWebcamNow = !!this.webcamStream;
 
-      // Add screen video track
-      this.screenStream.getVideoTracks().forEach((t) => recordingStream.addTrack(t));
+      if (hasWebcamNow) {
+        // Use canvas compositor to bake webcam into video
+        const screenW = vs?.width ?? 1920;
+        const screenH = vs?.height ?? 1080;
 
-      // Mix audio (mic + system audio from screen)
+        this.compositor = new CanvasCompositor({
+          width: screenW,
+          height: screenH,
+          fps: preset.fps,
+          webcamSize: settings.webcamSize,
+          webcamPosition: settings.webcamPosition,
+          showWebcam: true,
+        });
+
+        await this.compositor.attachScreenStream(this.screenStream);
+        await this.compositor.attachWebcamStream(this.webcamStream!);
+        const compositorStream = this.compositor.start();
+        compositorStream.getVideoTracks().forEach((t) => recordingStream.addTrack(t));
+        console.log('[LoomFX] Compositor started ✓ (webcam baked into video)');
+      } else {
+        // Direct screen recording (no compositor needed)
+        this.screenStream.getVideoTracks().forEach((t) => recordingStream.addTrack(t));
+        console.log('[LoomFX] Direct screen recording (no webcam)');
+      }
+
+      // Audio mixing
       const hasSystemAudio = this.screenStream.getAudioTracks().length > 0;
       const hasMicAudio = !!this.micStream;
 
       if (hasSystemAudio || hasMicAudio) {
         this.audioMixer = new AudioMixer();
         await this.audioMixer.resume();
-
-        if (hasMicAudio) {
-          this.audioMixer.connectMicrophone(this.micStream!);
-        }
+        if (hasMicAudio) this.audioMixer.connectMicrophone(this.micStream!);
         if (hasSystemAudio) {
           this.audioMixer.connectSystemAudio(this.screenStream);
-          console.log('[LoomFX] System audio connected ✓');
+          console.log('[LoomFX] System audio ✓');
         }
         this.audioMixer.getOutputStream().getAudioTracks().forEach((t) => recordingStream.addTrack(t));
       }
 
-      console.log('[LoomFX] Recording stream:', {
-        videoTracks: recordingStream.getVideoTracks().length,
-        audioTracks: recordingStream.getAudioTracks().length,
-      });
-
-      // 5. Start MediaRecorder
+      // 5. MediaRecorder
       this.chunks = [];
       const mimeType = this.getSupportedMimeType();
-      console.log('[LoomFX] Using mimeType:', mimeType);
 
       this.recorder = new MediaRecorder(recordingStream, {
         mimeType,
@@ -181,28 +182,25 @@ export class RecordingOrchestrator {
       });
 
       this.recorder.ondataavailable = (e) => {
-        if (e.data.size > 0) {
-          this.chunks.push(e.data);
-        }
+        if (e.data.size > 0) this.chunks.push(e.data);
       };
 
-      this.recorder.onerror = (e) => {
-        console.error('[LoomFX] MediaRecorder error:', e);
-        this.emitToast('error', 'Recording failed unexpectedly');
+      this.recorder.onerror = () => {
+        this.emitToast('error', 'Recording failed');
         this.stop();
       };
 
-      // 6. Start with optional countdown
+      // 6. Start (with optional countdown)
       if (settings.countdownEnabled) {
         recordingStore.setStatus('countdown');
-        const onCountdownDone = () => {
-          window.removeEventListener('loomfx:countdown-done', onCountdownDone);
+        const onDone = () => {
+          window.removeEventListener('loomfx:countdown-done', onDone);
           this.recorder?.start(1000);
           recordingStore.setStatus('recording');
           this.emitToast('success', 'Recording started');
-          console.log('[LoomFX] 🔴 Recording started (after countdown)');
+          console.log('[LoomFX] 🔴 Recording started');
         };
-        window.addEventListener('loomfx:countdown-done', onCountdownDone);
+        window.addEventListener('loomfx:countdown-done', onDone);
       } else {
         this.recorder.start(1000);
         recordingStore.setStatus('recording');
@@ -211,9 +209,9 @@ export class RecordingOrchestrator {
       }
 
     } catch (err) {
-      console.error('[LoomFX] Recording start failed:', err);
+      console.error('[LoomFX] Start failed:', err);
       recordingStore.setError((err as Error).message);
-      this.emitToast('error', `Failed to start: ${(err as Error).message}`);
+      this.emitToast('error', `Failed: ${(err as Error).message}`);
       this.cleanupStreams();
     } finally {
       this.isStarting = false;
@@ -221,10 +219,7 @@ export class RecordingOrchestrator {
   }
 
   async stop(): Promise<void> {
-    console.log('[LoomFX] Stopping recording...');
-
     if (!this.recorder || this.recorder.state === 'inactive') {
-      console.warn('[LoomFX] No active recorder to stop');
       this.cleanup();
       recordingStore.setStatus('idle');
       return;
@@ -238,24 +233,20 @@ export class RecordingOrchestrator {
           const mimeType = this.recorder?.mimeType ?? 'video/webm';
           const blob = new Blob(this.chunks, { type: mimeType });
           const ext = mimeType.includes('mp4') ? 'mp4' : 'webm';
-          const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-          const filename = `LoomFX_${timestamp}.${ext}`;
+          const ts = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+          const filename = `LoomFX_${ts}.${ext}`;
 
-          console.log('[LoomFX] Video blob created:', {
+          console.log('[LoomFX] Video:', {
             size: `${(blob.size / 1048576).toFixed(1)} MB`,
-            type: mimeType,
             chunks: this.chunks.length,
           });
 
-          // Auto-download the file
           triggerDownload(blob, filename);
-          console.log('[LoomFX] ✅ Downloaded:', filename);
-          this.emitToast('success', `Downloaded: ${filename} (${(blob.size / 1048576).toFixed(1)} MB)`);
-
+          this.emitToast('success', `Downloaded: ${filename}`);
           recordingStore.setOutput(blob, filename);
         } catch (err) {
           console.error('[LoomFX] Save failed:', err);
-          this.emitToast('error', 'Failed to save recording');
+          this.emitToast('error', 'Failed to save');
           recordingStore.setStatus('error');
         }
 
@@ -271,8 +262,7 @@ export class RecordingOrchestrator {
     if (this.recorder?.state === 'recording') {
       this.recorder.pause();
       recordingStore.setStatus('paused');
-      this.emitToast('info', 'Recording paused');
-      console.log('[LoomFX] ⏸ Paused');
+      this.emitToast('info', 'Paused');
     }
   }
 
@@ -280,8 +270,7 @@ export class RecordingOrchestrator {
     if (this.recorder?.state === 'paused') {
       this.recorder.resume();
       recordingStore.setStatus('recording');
-      this.emitToast('info', 'Recording resumed');
-      console.log('[LoomFX] ▶ Resumed');
+      this.emitToast('info', 'Resumed');
     }
   }
 
@@ -295,6 +284,8 @@ export class RecordingOrchestrator {
   }
 
   private cleanup(): void {
+    this.compositor?.stop();
+    this.compositor = null;
     this.audioMixer?.dispose();
     this.audioMixer = null;
     this.cleanupStreams();
