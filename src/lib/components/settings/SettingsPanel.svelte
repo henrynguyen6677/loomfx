@@ -81,7 +81,7 @@
           <h3 class="section-title">Webcam Size</h3>
           <div class="range-group full">
             <input
-              type="range" min="80" max="300" step="10"
+              type="range" min="80" max="300" step="1"
               value={settings.webcamSize}
               oninput={(e) => settingsStore.setWebcamSize(Number((e.target as HTMLInputElement).value))}
             />
