@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import { settingsStore } from '$lib/stores/settingsStore';
   import { QUALITY_PRESETS, WEBCAM_POSITIONS, type WebcamPosition } from '$lib/utils/constants';
 
@@ -13,7 +14,8 @@
 
   const settings = $derived($settingsStore);
 
-  $effect(() => {
+  // Only enumerate devices ONCE on mount, not on every reactive change
+  onMount(() => {
     navigator.mediaDevices?.enumerateDevices().then((devices) => {
       cameras = devices.filter((d) => d.kind === 'videoinput');
       microphones = devices.filter((d) => d.kind === 'audioinput');

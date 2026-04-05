@@ -41,7 +41,10 @@
   .app-main {
     flex: 1;
     display: flex;
+    align-items: stretch;
+    justify-content: center;
     padding: calc(var(--header-height) + var(--space-4)) var(--space-6) calc(var(--toolbar-height) + var(--space-6) + var(--space-8)) var(--space-6);
     overflow: hidden;
+    width: 100%;
   }
 </style>

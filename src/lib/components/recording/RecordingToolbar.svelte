@@ -156,7 +156,6 @@
     max-width: 560px;
     width: auto;
     z-index: var(--z-sticky);
-    animation: fade-in-up 0.4s var(--transition-smooth);
   }
 
   .toolbar-timer {

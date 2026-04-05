@@ -148,13 +148,10 @@ body {
   overflow: hidden;
   height: 100vh;
   width: 100vw;
-  /* Prevent layout jitter on load */
-  animation: page-fade-in 0.3s ease forwards;
-}
-
-@keyframes page-fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  /* App-wide: prevent text selection cursor on non-input elements */
+  -webkit-user-select: none;
+  user-select: none;
+  cursor: default;
 }
 
 a {
@@ -202,6 +199,10 @@ input, select, textarea {
   padding: var(--space-2) var(--space-3);
   outline: none;
   transition: border-color var(--transition-normal);
+  /* Re-enable text selection for form inputs */
+  -webkit-user-select: text;
+  user-select: text;
+  cursor: text;
 }
 
 input:focus, select:focus, textarea:focus {
