@@ -22,9 +22,12 @@ export class PermissionManager {
   async requestScreen(withAudio = true): Promise<PermissionResult> {
     try {
       // Build cross-browser-safe options
+      // Only Chromium reliably supports system audio in getDisplayMedia
+      const useAudio = withAudio && this.caps.isChromium;
+
       const options: DisplayMediaStreamOptions = {
         video: true,
-        audio: withAudio,
+        audio: useAudio,
       };
 
       // Chromium-only: add resolution hints + surface control
@@ -34,7 +37,6 @@ export class PermissionManager {
           height: { ideal: 1080 },
           frameRate: { ideal: 30, max: 60 },
         };
-        // Chromium 107+: prevent auto-switching to shared tab
         (options as any).surfaceSwitching = 'exclude';
         (options as any).selfBrowserSurface = 'exclude';
       }
@@ -52,7 +54,14 @@ export class PermissionManager {
 
       return { granted: true, stream };
     } catch (err) {
-      return { granted: false, errorCode: this.classifyError(err as Error, 'screen') };
+      const error = err as Error;
+
+      // macOS + NotFoundError = OS-level screen recording permission not granted
+      if (this.caps.isMacOS && error.name === 'NotFoundError') {
+        return { granted: false, errorCode: 'MACOS_SCREEN_PERMISSION' };
+      }
+
+      return { granted: false, errorCode: this.classifyError(error, 'screen') };
     }
   }
 
