@@ -21,17 +21,25 @@ export class PermissionManager {
   /** Request screen capture — REQUIRED, cannot proceed without */
   async requestScreen(withAudio = true): Promise<PermissionResult> {
     try {
-      const stream = await navigator.mediaDevices.getDisplayMedia({
-        video: {
+      // Build cross-browser-safe options
+      const options: DisplayMediaStreamOptions = {
+        video: true,
+        audio: withAudio,
+      };
+
+      // Chromium-only: add resolution hints + surface control
+      if (this.caps.isChromium) {
+        options.video = {
           width: { ideal: 1920 },
           height: { ideal: 1080 },
           frameRate: { ideal: 30, max: 60 },
-        },
-        audio: withAudio,
-        // Chromium 107+: prevent auto-switching to the shared tab
-        surfaceSwitching: 'exclude',
-        selfBrowserSurface: 'exclude',
-      } as DisplayMediaStreamOptions);
+        };
+        // Chromium 107+: prevent auto-switching to shared tab
+        (options as any).surfaceSwitching = 'exclude';
+        (options as any).selfBrowserSurface = 'exclude';
+      }
+
+      const stream = await navigator.mediaDevices.getDisplayMedia(options);
 
       // Bring focus back to the LoomFX tab after screen picker
       window.focus();
