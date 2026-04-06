@@ -175,6 +175,7 @@
   .toolbar {
     display: flex;
     align-items: center;
+    gap: var(--space-4);
     height: var(--toolbar-height);
     padding: 0 var(--space-5);
     position: fixed;
