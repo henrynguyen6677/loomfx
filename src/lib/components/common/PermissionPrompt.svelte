@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { detectBrowser } from '$lib/utils/browserDetect';
+  import { detectBrowser } from "$lib/utils/browserDetect";
 
   interface Props {
     errorCode: string;
@@ -20,49 +20,63 @@
   function getGuidance(): Guidance {
     const guides: Record<string, Guidance> = {
       MACOS_SCREEN_PERMISSION: {
-        title: 'macOS Screen Recording Permission',
-        message: 'Your Mac requires you to explicitly grant Screen Recording permission to your browser.',
-        action: 'Open System Settings → Privacy & Security → Screen Recording → Enable ' + caps.browserName,
-        icon: '🖥️',
+        title: "macOS Screen Recording Permission",
+        message:
+          "Your Mac requires you to explicitly grant Screen Recording permission to your browser.",
+        action:
+          "Open System Settings → Privacy & Security → Screen Recording → Enable " +
+          caps.browserName,
+        icon: "🖥️",
       },
       PERMISSION_DENIED_SCREEN: {
-        title: 'Screen Capture Blocked',
-        message: 'Screen sharing was denied. LoomFX needs this to record your screen.',
-        action: 'Click "Start Recording" again and select a screen/window to share.',
-        icon: '🔒',
+        title: "Screen Capture Blocked",
+        message:
+          "Screen sharing was denied. LoomFX needs this to record your screen.",
+        action:
+          'Click "Start Recording" again and select a screen/window to share.',
+        icon: "🔒",
       },
       PERMISSION_DENIED_CAMERA: {
-        title: 'Camera Access Denied',
-        message: 'Camera access was denied. Recording will continue without webcam overlay.',
-        action: 'To enable webcam, click the lock icon in the address bar and allow camera access.',
-        icon: '📷',
+        title: "Camera Access Denied",
+        message:
+          "Camera access was denied. Recording will continue without webcam overlay.",
+        action:
+          "To enable webcam, click the lock icon in the address bar and allow camera access.",
+        icon: "📷",
       },
       PERMISSION_DENIED_MICROPHONE: {
-        title: 'Microphone Access Denied',
-        message: 'Microphone access was denied. Recording will be silent.',
-        action: 'To enable audio, click the lock icon in the address bar and allow microphone access.',
-        icon: '🎤',
+        title: "Microphone Access Denied",
+        message: "Microphone access was denied. Recording will be silent.",
+        action:
+          "To enable audio, click the lock icon in the address bar and allow microphone access.",
+        icon: "🎤",
       },
       DEVICE_NOT_FOUND_CAMERA: {
-        title: 'No Camera Found',
-        message: 'No webcam was detected on this device.',
-        action: 'Connect a webcam and try again, or continue without webcam.',
-        icon: '🔌',
+        title: "No Camera Found",
+        message: "No webcam was detected on this device.",
+        action: "Connect a webcam and try again, or continue without webcam.",
+        icon: "🔌",
       },
       BROWSER_NOT_SUPPORTED: {
-        title: 'Browser Not Fully Supported',
-        message: 'Some features may not work in ' + caps.browserName + '. For the best experience, use Chrome or Edge.',
-        action: 'Download Chrome from google.com/chrome for the full LoomFX experience.',
-        icon: '⚠️',
+        title: "Browser Not Fully Supported",
+        message:
+          "Some features may not work in " +
+          caps.browserName +
+          ". For the best experience, use Chrome or Edge.",
+        action:
+          "Download Chrome from google.com/chrome for the full LoomFX experience.",
+        icon: "⚠️",
       },
     };
 
-    return guides[errorCode] ?? {
-      title: 'Something went wrong',
-      message: `Error: ${errorCode}`,
-      action: 'Please refresh the page and try again.',
-      icon: '❌',
-    };
+    return (
+      guides[errorCode] ?? {
+        title: "Something went wrong",
+        message: `Error: ${errorCode}`,
+        action: "Please refresh the page and try again.",
+        icon: "❌",
+      }
+    );
   }
 
   const guidance = getGuidance();
@@ -70,7 +84,9 @@
 
 <div class="permission-prompt" id="permission-prompt">
   <div class="prompt-card glass">
-    <button class="prompt-close" onclick={onDismiss} aria-label="Dismiss">✕</button>
+    <button class="prompt-close" onclick={onDismiss} aria-label="Dismiss"
+      >✕</button
+    >
 
     <span class="prompt-icon">{guidance.icon}</span>
     <h3 class="prompt-title">{guidance.title}</h3>
@@ -81,7 +97,7 @@
       <p class="action-text">{guidance.action}</p>
     </div>
 
-    {#if errorCode === 'MACOS_SCREEN_PERMISSION'}
+    {#if errorCode === "MACOS_SCREEN_PERMISSION"}
       <div class="prompt-steps">
         <div class="step">
           <span class="step-num">1</span>
@@ -104,7 +120,7 @@
 
     <div class="prompt-actions">
       <button class="btn-primary" onclick={onDismiss}>
-        {errorCode.includes('SCREEN') ? 'Try Again' : 'Got it'}
+        {errorCode.includes("SCREEN") ? "Try Again" : "Got it"}
       </button>
     </div>
   </div>
@@ -130,7 +146,6 @@
     padding: var(--space-8);
     border-radius: var(--radius-xl);
     text-align: center;
-    animation: scale-in 0.3s var(--transition-spring);
   }
 
   .prompt-close {
