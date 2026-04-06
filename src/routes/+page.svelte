@@ -1,7 +1,7 @@
 <script lang="ts">
   import LivePreview from '$lib/components/recording/LivePreview.svelte';
   import RecordingToolbar from '$lib/components/recording/RecordingToolbar.svelte';
-  import RecordingWidget from '$lib/components/recording/RecordingWidget.svelte';
+
   import WebcamBubble from '$lib/components/recording/WebcamBubble.svelte';
   import CountdownOverlay from '$lib/components/recording/CountdownOverlay.svelte';
   import SettingsPanel from '$lib/components/settings/SettingsPanel.svelte';
@@ -121,8 +121,7 @@
     </div>
   {/if}
 
-  <!-- Floating Recording Widget (visible during recording) -->
-  <RecordingWidget />
+
 
   <!-- Recording Toolbar -->
   <RecordingToolbar />

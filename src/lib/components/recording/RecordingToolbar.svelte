@@ -59,36 +59,35 @@
 </script>
 
 <div class="toolbar glass" id="recording-toolbar">
-  <!-- Left section -->
-  <div class="toolbar-left">
+  <!-- LEFT: Timer / Quality -->
+  <div class="toolbar-section left">
     {#if isIdle}
-      <!-- Clickable quality badge cycling Low → Medium → High -->
-      <button class="config-badge" onclick={cycleQuality} title="Click to change quality">
+      <button class="quality-pill" onclick={cycleQuality} title="Click to change quality">
         {qualityLabel}
       </button>
     {:else}
-      <!-- Timer during recording -->
-      <div class="toolbar-timer" class:active={isActiveRecording}>
-        {#if $isRecording}
-          <span class="timer-dot recording-pulse"></span>
-        {:else if $isPaused}
-          <span class="timer-dot paused"></span>
-        {:else if isRequesting}
-          <span class="timer-dot requesting"></span>
-        {/if}
-        <span class="timer-text">{formatTime(elapsedSeconds)}</span>
+      <div class="timer-stack">
+        <div class="timer-row">
+          {#if $isRecording}
+            <span class="timer-dot recording-pulse"></span>
+          {:else if $isPaused}
+            <span class="timer-dot paused"></span>
+          {:else if isRequesting}
+            <span class="timer-dot requesting"></span>
+          {/if}
+          <span class="timer-text">{formatTime(elapsedSeconds)}</span>
+        </div>
         {#if isActiveRecording && recordingSize > 0}
-          <span class="size-sep"></span>
           <span class="size-text">{formatSize(recordingSize)}</span>
         {/if}
       </div>
     {/if}
   </div>
 
-  <!-- Center Controls -->
-  <div class="toolbar-controls">
+  <!-- CENTER: Record/Stop + Pause -->
+  <div class="toolbar-section center">
     <button
-      class="control-btn primary"
+      class="rec-btn"
       class:recording={isActiveRecording}
       class:requesting={isRequesting}
       onclick={handleStartStop}
@@ -101,59 +100,45 @@
           <circle cx="12" cy="12" r="8" stroke-dasharray="25 25" stroke-linecap="round"/>
         </svg>
       {:else if $canRecord}
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-          <circle cx="12" cy="12" r="8"/>
-        </svg>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="8"/></svg>
       {:else}
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-          <rect x="6" y="6" width="12" height="12" rx="2"/>
-        </svg>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
       {/if}
     </button>
 
     {#if isActiveRecording}
       <button
-        class="control-btn secondary"
+        class="ctrl-btn"
         onclick={handlePauseResume}
         aria-label={$isRecording ? 'Pause' : 'Resume'}
         id="btn-pause-resume"
       >
         {#if $isRecording}
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-            <rect x="6" y="4" width="4" height="16" rx="1"/>
-            <rect x="14" y="4" width="4" height="16" rx="1"/>
-          </svg>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>
         {:else}
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-            <polygon points="6,4 20,12 6,20"/>
-          </svg>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="6,4 20,12 6,20"/></svg>
         {/if}
       </button>
     {/if}
   </div>
 
-  <!-- Right Controls -->
-  <div class="toolbar-toggles">
-    <!-- Webcam Toggle -->
+  <!-- RIGHT: Toggles + Settings -->
+  <div class="toolbar-section right">
     <button
-      class="toggle-btn"
+      class="icon-btn"
       class:active={webcamEnabled}
       onclick={handleToggleWebcam}
       aria-label={webcamEnabled ? 'Disable Webcam' : 'Enable Webcam'}
       id="btn-toggle-webcam"
     >
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M23 7l-7 5 7 5V7z"/>
-        <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+        <path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
       </svg>
-      {#if !webcamEnabled}
-        <span class="toggle-slash"></span>
-      {/if}
+      {#if !webcamEnabled}<span class="slash"></span>{/if}
     </button>
 
-    <!-- Mic Toggle -->
     <button
-      class="toggle-btn"
+      class="icon-btn"
       class:active={micEnabled}
       onclick={handleToggleMic}
       aria-label={micEnabled ? 'Mute Microphone' : 'Unmute Microphone'}
@@ -165,14 +150,13 @@
         <line x1="12" y1="19" x2="12" y2="23"/>
         <line x1="8" y1="23" x2="16" y2="23"/>
       </svg>
-      {#if !micEnabled}
-        <span class="toggle-slash"></span>
-      {/if}
+      {#if !micEnabled}<span class="slash"></span>{/if}
     </button>
 
-    <!-- Settings Button -->
+    <span class="divider"></span>
+
     <button
-      class="toggle-btn settings-btn"
+      class="icon-btn"
       onclick={handleOpenSettings}
       aria-label="Open Settings"
       title="Settings"
@@ -187,201 +171,175 @@
 </div>
 
 <style>
+  /* ─── Toolbar Shell ─── */
   .toolbar {
     display: flex;
     align-items: center;
-    justify-content: space-between;
     height: var(--toolbar-height);
-    padding: 0 var(--space-6);
+    padding: 0 var(--space-5);
     position: fixed;
     bottom: var(--space-6);
     left: 50%;
     transform: translateX(-50%);
     border-radius: var(--radius-2xl);
-    min-width: 420px;
-    max-width: 600px;
-    width: auto;
+    min-width: 380px;
+    max-width: 520px;
     z-index: var(--z-sticky);
   }
 
-  /* Config badge (idle - clickable quality selector) */
-  .config-badge {
+  /* ─── 3-Column Layout ─── */
+  .toolbar-section {
+    display: flex;
+    align-items: center;
+  }
+  .toolbar-section.left {
+    flex: 1;
+    justify-content: flex-start;
+  }
+  .toolbar-section.center {
+    flex: 0 0 auto;
+    gap: var(--space-2);
+    justify-content: center;
+  }
+  .toolbar-section.right {
+    flex: 1;
+    justify-content: flex-end;
+    gap: 4px;
+  }
+
+  /* ─── Quality Pill (idle) ─── */
+  .quality-pill {
     padding: 4px 12px;
     border-radius: 100px;
-    background: rgba(108, 92, 231, 0.15);
+    background: rgba(108, 92, 231, 0.12);
     color: var(--color-primary-light);
     font-weight: var(--font-weight-medium);
     font-size: var(--font-size-xs);
-    white-space: nowrap;
     cursor: pointer;
     transition: all 0.15s;
-    border: 1px solid transparent;
+    border: 1px solid rgba(108, 92, 231, 0.15);
   }
-  .config-badge:hover {
-    background: rgba(108, 92, 231, 0.25);
-    border-color: rgba(108, 92, 231, 0.3);
-  }
-
-  .toolbar-left {
-    min-width: 120px;
+  .quality-pill:hover {
+    background: rgba(108, 92, 231, 0.22);
+    border-color: rgba(108, 92, 231, 0.35);
   }
 
-  /* Timer (recording state) */
-  .toolbar-timer {
+  /* ─── Timer (recording) ─── */
+  .timer-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+  .timer-row {
     display: flex;
     align-items: center;
     gap: var(--space-2);
-    opacity: 0.4;
-    transition: opacity var(--transition-normal);
   }
-
-  .toolbar-timer.active {
-    opacity: 1;
-  }
-
   .timer-dot {
-    width: 10px;
-    height: 10px;
+    width: 8px;
+    height: 8px;
     border-radius: 50%;
     background: var(--color-recording);
     flex-shrink: 0;
   }
-
   .timer-dot.paused {
     background: var(--color-paused);
     animation: none;
   }
-
   .timer-dot.requesting {
     background: var(--color-primary);
     animation: recording-pulse 1.2s infinite;
   }
-
   .timer-text {
-    font-size: var(--font-size-md);
+    font-size: var(--font-size-sm);
     font-weight: var(--font-weight-semibold);
     font-variant-numeric: tabular-nums;
     letter-spacing: 0.04em;
   }
-
-  .size-sep {
-    width: 1px;
-    height: 14px;
-    background: rgba(255, 255, 255, 0.15);
-    margin: 0 2px;
-  }
-
   .size-text {
-    font-size: 11px;
+    font-size: 10px;
     color: var(--color-text-muted);
     font-variant-numeric: tabular-nums;
-    opacity: 0.7;
+    padding-left: 16px; /* dot(8px) + gap(8px) */
+    opacity: 0.6;
   }
 
-  /* Controls */
-  .toolbar-controls {
-    display: flex;
-    align-items: center;
-    gap: var(--space-3);
-  }
-
-  .control-btn {
+  /* ─── Record / Stop Button ─── */
+  .rec-btn {
     display: flex;
     align-items: center;
     justify-content: center;
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
-    transition: all var(--transition-smooth);
-  }
-
-  .control-btn.primary {
-    width: 52px;
-    height: 52px;
     background: var(--color-primary);
     color: white;
     box-shadow: var(--shadow-glow-primary);
+    transition: all var(--transition-smooth);
   }
-
-  .control-btn.primary:hover:not(:disabled) {
+  .rec-btn:hover:not(:disabled) {
     background: var(--color-primary-hover);
-    transform: scale(1.08);
+    transform: scale(1.06);
   }
-
-  .control-btn.primary:active:not(:disabled) {
-    transform: scale(0.95);
-  }
-
-  .control-btn.primary:disabled {
-    cursor: wait;
-    opacity: 0.7;
-  }
-
-  .control-btn.primary.recording {
+  .rec-btn:active:not(:disabled) { transform: scale(0.95); }
+  .rec-btn:disabled { cursor: wait; opacity: 0.7; }
+  .rec-btn.recording {
     background: var(--color-recording);
     box-shadow: var(--shadow-glow-recording);
   }
+  .rec-btn.recording:hover:not(:disabled) { background: #dc2626; }
+  .rec-btn.requesting { background: var(--color-primary); opacity: 0.8; }
 
-  .control-btn.primary.recording:hover:not(:disabled) {
-    background: #dc2626;
-  }
-
-  .control-btn.primary.requesting {
-    background: var(--color-primary);
-    opacity: 0.8;
-  }
-
-  .control-btn.secondary {
-    width: 42px;
-    height: 42px;
+  /* ─── Control Button (Pause) ─── */
+  .ctrl-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
     background: var(--color-surface);
     color: var(--color-text-primary);
     border: 1px solid var(--color-border);
+    transition: all var(--transition-normal);
   }
-
-  .control-btn.secondary:hover {
+  .ctrl-btn:hover {
     background: var(--color-surface-hover);
     border-color: var(--color-border-hover);
   }
 
-  /* Toggles */
-  .toolbar-toggles {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
-  }
-
-  .toggle-btn {
+  /* ─── Icon Buttons (cam, mic, settings) ─── */
+  .icon-btn {
     position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
     border-radius: var(--radius-md);
     color: var(--color-text-muted);
     transition: all var(--transition-normal);
   }
-
-  .toggle-btn.active {
+  .icon-btn.active {
     color: var(--color-text-primary);
-    background: var(--color-surface);
   }
-
-  .toggle-btn:hover {
-    background: var(--color-surface-hover);
+  .icon-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
     color: var(--color-text-primary);
   }
 
-  .settings-btn {
-    border-left: 1px solid var(--color-border);
-    border-radius: 0 var(--radius-md) var(--radius-md) 0;
-    padding-left: var(--space-2);
-    margin-left: var(--space-1);
+  .divider {
+    width: 1px;
+    height: 20px;
+    background: var(--color-border);
+    margin: 0 2px;
+    flex-shrink: 0;
   }
 
-  .toggle-slash {
+  .slash {
     position: absolute;
     width: 2px;
-    height: 24px;
+    height: 22px;
     background: var(--color-error);
     transform: rotate(45deg);
     border-radius: 1px;
@@ -391,26 +349,24 @@
   .spinner {
     animation: spin 1s linear infinite;
   }
-
   @keyframes spin {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
   }
 
+  /* ─── Responsive ─── */
   @media (max-width: 768px) {
     .toolbar {
       min-width: auto;
       width: calc(100% - var(--space-6));
-      max-width: 480px;
+      max-width: 440px;
       padding: 0 var(--space-4);
       bottom: var(--space-3);
       height: 60px;
     }
-    .toolbar-left { min-width: 100px; }
-    .control-btn.primary { width: 44px; height: 44px; }
-    .control-btn.secondary { width: 34px; height: 34px; }
-    .toggle-btn { width: 34px; height: 34px; }
-    .config-badge { font-size: 10px; }
+    .rec-btn { width: 44px; height: 44px; }
+    .ctrl-btn { width: 34px; height: 34px; }
+    .icon-btn { width: 32px; height: 32px; }
   }
 
   @media (max-width: 480px) {
@@ -422,11 +378,9 @@
       height: 54px;
       border-radius: var(--radius-xl);
     }
-    .toolbar-left { min-width: 50px; }
-    .timer-text { font-size: var(--font-size-xs); }
-    .control-btn.primary { width: 40px; height: 40px; }
-    .control-btn.secondary { width: 30px; height: 30px; }
-    .toggle-btn { width: 30px; height: 30px; }
-    .config-badge { font-size: 10px; }
+    .rec-btn { width: 40px; height: 40px; }
+    .ctrl-btn { width: 30px; height: 30px; }
+    .icon-btn { width: 28px; height: 28px; }
+    .quality-pill { font-size: 10px; padding: 3px 8px; }
   }
 </style>
