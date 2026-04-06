@@ -21,17 +21,27 @@ export class PermissionManager {
   /** Request screen capture — REQUIRED, cannot proceed without */
   async requestScreen(withAudio = true): Promise<PermissionResult> {
     try {
-      const stream = await navigator.mediaDevices.getDisplayMedia({
-        video: {
+      // Build cross-browser-safe options
+      // Only Chromium reliably supports system audio in getDisplayMedia
+      const useAudio = withAudio && this.caps.isChromium;
+
+      const options: DisplayMediaStreamOptions = {
+        video: true,
+        audio: useAudio,
+      };
+
+      // Chromium-only: add resolution hints + surface control
+      if (this.caps.isChromium) {
+        options.video = {
           width: { ideal: 1920 },
           height: { ideal: 1080 },
           frameRate: { ideal: 30, max: 60 },
-        },
-        audio: withAudio,
-        // Chromium 107+: prevent auto-switching to the shared tab
-        surfaceSwitching: 'exclude',
-        selfBrowserSurface: 'exclude',
-      } as DisplayMediaStreamOptions);
+        };
+        (options as any).surfaceSwitching = 'exclude';
+        (options as any).selfBrowserSurface = 'exclude';
+      }
+
+      const stream = await navigator.mediaDevices.getDisplayMedia(options);
 
       // Bring focus back to the LoomFX tab after screen picker
       window.focus();
@@ -44,7 +54,14 @@ export class PermissionManager {
 
       return { granted: true, stream };
     } catch (err) {
-      return { granted: false, errorCode: this.classifyError(err as Error, 'screen') };
+      const error = err as Error;
+
+      // macOS + NotFoundError = OS-level screen recording permission not granted
+      if (this.caps.isMacOS && error.name === 'NotFoundError') {
+        return { granted: false, errorCode: 'MACOS_SCREEN_PERMISSION' };
+      }
+
+      return { granted: false, errorCode: this.classifyError(error, 'screen') };
     }
   }
 

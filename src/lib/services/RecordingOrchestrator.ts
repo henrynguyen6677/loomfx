@@ -10,7 +10,6 @@
 import { PermissionManager } from '$lib/services/capture/PermissionManager';
 import { AudioMixer } from '$lib/services/compositor/AudioMixer';
 import { CanvasCompositor } from '$lib/services/compositor/CanvasCompositor';
-import { createStorageAdapter, type StorageAdapter } from '$lib/services/storage/StorageAdapter';
 import { recordingStore } from '$lib/stores/recordingStore';
 import { settingsStore } from '$lib/stores/settingsStore';
 import { QUALITY_PRESETS } from '$lib/utils/constants';
@@ -26,8 +25,6 @@ export class RecordingOrchestrator {
   private webcamStream: MediaStream | null = null;
   private micStream: MediaStream | null = null;
   private chunks: Blob[] = [];
-  private storageAdapter: StorageAdapter | null = null;
-  private storageType = '';
   private isStarting = false;
 
   constructor() {
@@ -187,26 +184,10 @@ export class RecordingOrchestrator {
         videoBitsPerSecond: preset.videoBitrate,
       });
 
-      // Init storage adapter
-      const storage = createStorageAdapter();
-      this.storageAdapter = storage.adapter;
-      this.storageType = storage.type;
-      console.log(`[LoomFX] Storage: ${storage.name} (${storage.type})`);
-
-      const ts = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-      const ext = mimeType.includes('mp4') ? 'mp4' : 'webm';
-      await this.storageAdapter.open(`LoomFX_${ts}.${ext}`);
-
-      this.recorder.ondataavailable = async (e) => {
+      this.recorder.ondataavailable = (e) => {
         if (e.data.size > 0) {
           this.chunks.push(e.data);
           recordingStore.addRecordingSize(e.data.size);
-          // Stream to storage adapter (off-RAM for disk/OPFS)
-          try {
-            await this.storageAdapter?.write(e.data);
-          } catch (err) {
-            console.warn('[LoomFX] Storage write error:', err);
-          }
         }
       };
 
@@ -255,32 +236,19 @@ export class RecordingOrchestrator {
     return new Promise<void>((resolve) => {
       this.recorder!.onstop = async () => {
         try {
-          // Close storage adapter
-          await this.storageAdapter?.close();
+          const mimeType = this.recorder?.mimeType ?? 'video/webm';
+          const blob = new Blob(this.chunks, { type: mimeType });
+          const ext = mimeType.includes('mp4') ? 'mp4' : 'webm';
+          const ts = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+          const filename = `LoomFX_${ts}.${ext}`;
 
-          // Get final blob: from adapter (disk/OPFS) or fallback to chunks
-          let blob = await this.storageAdapter?.getFile() ?? null;
-          if (!blob && this.chunks.length > 0) {
-            const mimeType = this.recorder?.mimeType ?? 'video/webm';
-            blob = new Blob(this.chunks, { type: mimeType });
-          }
+          console.log('[LoomFX] Video:', {
+            size: `${(blob.size / 1048576).toFixed(1)} MB`,
+            chunks: this.chunks.length,
+          });
 
-          if (blob) {
-            const ext = blob.type.includes('mp4') ? 'mp4' : 'webm';
-            const ts = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-            const filename = `LoomFX_${ts}.${ext}`;
-
-            console.log('[LoomFX] Video:', {
-              size: `${(blob.size / 1048576).toFixed(1)} MB`,
-              storage: this.storageType,
-            });
-
-            recordingStore.setOutput(blob, filename);
-            this.emitToast('success', 'Recording complete!');
-          } else {
-            this.emitToast('error', 'No recording data');
-            recordingStore.setStatus('error');
-          }
+          recordingStore.setOutput(blob, filename);
+          this.emitToast('success', 'Recording complete!');
         } catch (err) {
           console.error('[LoomFX] Save failed:', err);
           this.emitToast('error', 'Failed to save');
@@ -329,8 +297,6 @@ export class RecordingOrchestrator {
     this.cleanupStreams();
     this.recorder = null;
     this.chunks = [];
-    this.storageAdapter = null;
-    this.storageType = '';
     window.dispatchEvent(new CustomEvent('loomfx:recording-cleanup'));
     console.log('[LoomFX] Cleanup complete');
   }
