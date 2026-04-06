@@ -25,6 +25,7 @@
 
   // Keyboard shortcuts — dispatch events only, let orchestrator handle state
   function handleKeydown(e: KeyboardEvent) {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
     if (['INPUT', 'TEXTAREA', 'SELECT'].includes((e.target as HTMLElement)?.tagName)) return;
 
     switch (e.key.toLowerCase()) {
