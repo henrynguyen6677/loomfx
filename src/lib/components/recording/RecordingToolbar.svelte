@@ -78,7 +78,8 @@
         {/if}
         <span class="timer-text">{formatTime(elapsedSeconds)}</span>
         {#if isActiveRecording && recordingSize > 0}
-          <span class="size-badge">{formatSize(recordingSize)}</span>
+          <span class="size-sep"></span>
+          <span class="size-text">{formatSize(recordingSize)}</span>
         {/if}
       </div>
     {/if}
@@ -263,14 +264,18 @@
     letter-spacing: 0.04em;
   }
 
-  .size-badge {
-    font-size: 10px;
-    padding: 1px 6px;
-    border-radius: 100px;
-    background: rgba(255, 255, 255, 0.08);
+  .size-sep {
+    width: 1px;
+    height: 14px;
+    background: rgba(255, 255, 255, 0.15);
+    margin: 0 2px;
+  }
+
+  .size-text {
+    font-size: 11px;
     color: var(--color-text-muted);
     font-variant-numeric: tabular-nums;
-    white-space: nowrap;
+    opacity: 0.7;
   }
 
   /* Controls */
