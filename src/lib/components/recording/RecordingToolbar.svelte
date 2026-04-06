@@ -49,26 +49,23 @@
   function handleOpenSettings() {
     recordingStore.toggleSettings();
   }
+
+  const qualityKeys = ['low', 'medium', 'high'] as const;
+  function cycleQuality() {
+    const idx = qualityKeys.indexOf(qualityPreset as typeof qualityKeys[number]);
+    const next = qualityKeys[(idx + 1) % qualityKeys.length];
+    settingsStore.setQuality(next);
+  }
 </script>
 
 <div class="toolbar glass" id="recording-toolbar">
   <!-- Left section -->
   <div class="toolbar-left">
     {#if isIdle}
-      <!-- Config summary when idle -->
-      <div class="config-summary">
-        <span class="config-badge">{qualityLabel}</span>
-        <span class="config-dot">·</span>
-        <span class="config-item" class:off={!webcamEnabled}>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
-          {webcamEnabled ? 'On' : 'Off'}
-        </span>
-        <span class="config-dot">·</span>
-        <span class="config-item" class:off={!micEnabled}>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>
-          {micEnabled ? 'On' : 'Off'}
-        </span>
-      </div>
+      <!-- Clickable quality badge cycling Low → Medium → High -->
+      <button class="config-badge" onclick={cycleQuality} title="Click to change quality">
+        {qualityLabel}
+      </button>
     {:else}
       <!-- Timer during recording -->
       <div class="toolbar-timer" class:active={isActiveRecording}>
@@ -206,45 +203,26 @@
     z-index: var(--z-sticky);
   }
 
-  /* Config summary (idle state) */
-  .config-summary {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: var(--font-size-xs);
-    color: var(--color-text-muted);
-  }
-
+  /* Config badge (idle - clickable quality selector) */
   .config-badge {
-    padding: 2px 8px;
+    padding: 4px 12px;
     border-radius: 100px;
     background: rgba(108, 92, 231, 0.15);
     color: var(--color-primary-light);
     font-weight: var(--font-weight-medium);
-    font-size: 11px;
+    font-size: var(--font-size-xs);
     white-space: nowrap;
+    cursor: pointer;
+    transition: all 0.15s;
+    border: 1px solid transparent;
   }
-
-  .config-dot {
-    color: var(--color-text-muted);
-    opacity: 0.4;
-  }
-
-  .config-item {
-    display: inline-flex;
-    align-items: center;
-    gap: 3px;
-    color: var(--color-text-secondary);
-    white-space: nowrap;
-  }
-
-  .config-item.off {
-    color: var(--color-text-muted);
-    opacity: 0.5;
+  .config-badge:hover {
+    background: rgba(108, 92, 231, 0.25);
+    border-color: rgba(108, 92, 231, 0.3);
   }
 
   .toolbar-left {
-    min-width: 140px;
+    min-width: 120px;
   }
 
   /* Timer (recording state) */
@@ -444,6 +422,6 @@
     .control-btn.primary { width: 40px; height: 40px; }
     .control-btn.secondary { width: 30px; height: 30px; }
     .toggle-btn { width: 30px; height: 30px; }
-    .config-summary { gap: 4px; font-size: 10px; }
+    .config-badge { font-size: 10px; }
   }
 </style>
