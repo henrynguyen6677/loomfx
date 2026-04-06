@@ -6,7 +6,7 @@
 
 **Record your screen, webcam, and audio — all processed 100% on your device.**
 
-[✨ Try it live](https://vellum.vercel.app) · [🐛 Report Bug](https://github.com/henrynguyen6677/loomfx/issues) · [💡 Request Feature](https://github.com/henrynguyen6677/loomfx/issues)
+[✨ Try it live](https://vellum.vercel.app) · [🐛 Report Bug](https://github.com/henrynguyen6677/vellum/issues) · [💡 Request Feature](https://github.com/henrynguyen6677/vellum/issues)
 
 ---
 
@@ -88,8 +88,8 @@ Just open **[vellum.vercel.app](https://vellum.vercel.app)** in Chrome or Edge. 
 
 ```bash
 # Clone the repo
-git clone https://github.com/henrynguyen6677/loomfx.git
-cd loomfx
+git clone https://github.com/henrynguyen6677/vellum.git
+cd vellum
 
 # Or use the new name
 # git clone https://github.com/henrynguyen6677/vellum.git
