@@ -12,12 +12,16 @@
   const { status, showSettings, error, outputBlob, outputFilename } = $derived($recordingStore);
 
   let permissionError = $state<string | null>(null);
+  let errorDebounce = false;
 
-  // Listen for permission errors
+  // Listen for permission errors (debounced to prevent double-flash)
   $effect(() => {
     const handler = (e: Event) => {
+      if (errorDebounce) return;
+      errorDebounce = true;
       const detail = (e as CustomEvent).detail;
       permissionError = detail?.errorCode ?? null;
+      setTimeout(() => { errorDebounce = false; }, 500);
     };
     window.addEventListener('loomfx:permission-error', handler);
     return () => window.removeEventListener('loomfx:permission-error', handler);
