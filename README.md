@@ -6,7 +6,7 @@
 
 **Record your screen, webcam, and audio — all processed 100% on your device.**
 
-[✨ Try it live](https://loomfx.vercel.app) · [🐛 Report Bug](https://github.com/henrynguyen/loomfx/issues) · [💡 Request Feature](https://github.com/henrynguyen/loomfx/issues)
+[✨ Try it live](https://loomfx.vercel.app) · [🐛 Report Bug](https://github.com/henrynguyen6677/loomfx/issues) · [💡 Request Feature](https://github.com/henrynguyen6677/loomfx/issues)
 
 ---
 
