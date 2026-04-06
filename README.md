@@ -6,7 +6,7 @@
 
 **Record your screen, webcam, and audio — all processed 100% on your device.**
 
-[✨ Try it live](https://vellum.vercel.app) · [🐛 Report Bug](https://github.com/henrynguyen6677/vellum/issues) · [💡 Request Feature](https://github.com/henrynguyen6677/vellum/issues)
+[✨ Try it live](https://vellumx.vercel.app) · [🐛 Report Bug](https://github.com/henrynguyen6677/vellum/issues) · [💡 Request Feature](https://github.com/henrynguyen6677/vellum/issues)
 
 ---
 
