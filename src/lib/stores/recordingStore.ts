@@ -12,6 +12,7 @@ interface RecordingState {
   showSettings: boolean;
   outputBlob: Blob | null;
   outputFilename: string | null;
+  webcamStream: MediaStream | null;
 }
 
 const initialState: RecordingState = {
@@ -24,6 +25,7 @@ const initialState: RecordingState = {
   showSettings: false,
   outputBlob: null,
   outputFilename: null,
+  webcamStream: null,
 };
 
 function createRecordingStore() {
@@ -69,6 +71,10 @@ function createRecordingStore() {
 
     setWebcamPosition(position: WebcamPosition) {
       update((s) => ({ ...s, webcamPosition: position }));
+    },
+
+    setWebcamStream(stream: MediaStream | null) {
+      update((s) => ({ ...s, webcamStream: stream }));
     },
 
     toggleSettings() {

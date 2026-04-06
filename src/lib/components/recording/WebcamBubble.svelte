@@ -3,24 +3,19 @@
   import { settingsStore } from '$lib/stores/settingsStore';
 
   const { webcamPosition } = $derived($settingsStore);
-  const { webcamEnabled } = $derived($recordingStore);
+  const { webcamEnabled, webcamStream } = $derived($recordingStore);
 
   let videoEl: HTMLVideoElement | undefined = $state();
   let isDragging = $state(false);
   let dragOffset = $state({ x: 0, y: 0 });
   let customPos = $state<{ x: number; y: number } | null>(null);
 
-  // Listen for webcam stream attachment
+  // Reactively attach webcam stream when video element or stream changes
   $effect(() => {
-    const handler = (e: Event) => {
-      const detail = (e as CustomEvent).detail;
-      if (videoEl && detail?.stream) {
-        videoEl.srcObject = detail.stream;
-        videoEl.play().catch(() => {});
-      }
-    };
-    window.addEventListener('loomfx:webcam-stream', handler);
-    return () => window.removeEventListener('loomfx:webcam-stream', handler);
+    if (videoEl && webcamStream) {
+      videoEl.srcObject = webcamStream;
+      videoEl.play().catch(() => {});
+    }
   });
 
   function getPositionStyle(): string {

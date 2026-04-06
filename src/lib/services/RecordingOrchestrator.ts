@@ -110,9 +110,7 @@ export class RecordingOrchestrator {
         );
         if (camResult.granted) {
           this.webcamStream = camResult.stream;
-          window.dispatchEvent(
-            new CustomEvent('loomfx:webcam-stream', { detail: { stream: this.webcamStream } })
-          );
+          recordingStore.setWebcamStream(this.webcamStream);
           console.log('[LoomFX] Camera ✓');
         } else {
           recordingStore.toggleWebcam();
@@ -286,6 +284,7 @@ export class RecordingOrchestrator {
     this.screenStream = null;
     this.webcamStream = null;
     this.micStream = null;
+    recordingStore.setWebcamStream(null);
   }
 
   private cleanup(): void {
