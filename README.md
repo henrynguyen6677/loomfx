@@ -6,7 +6,7 @@
 
 **Record your screen, webcam, and audio — all processed 100% on your device.**
 
-[✨ Try it live](https://loomfx.vercel.app) · [🐛 Report Bug](https://github.com/henrynguyen6677/loomfx/issues) · [💡 Request Feature](https://github.com/henrynguyen6677/loomfx/issues)
+[✨ Try it live](https://vellum.vercel.app) · [🐛 Report Bug](https://github.com/henrynguyen6677/loomfx/issues) · [💡 Request Feature](https://github.com/henrynguyen6677/loomfx/issues)
 
 ---
 
@@ -82,7 +82,7 @@ Most screen recorders upload your videos to the cloud, require accounts, and cha
 
 ### Use Online (Recommended)
 
-Just open **[loomfx.vercel.app](https://loomfx.vercel.app)** in Chrome or Edge. That's it.
+Just open **[vellum.vercel.app](https://vellum.vercel.app)** in Chrome or Edge. That's it.
 
 ### Run Locally
 
@@ -90,6 +90,9 @@ Just open **[loomfx.vercel.app](https://loomfx.vercel.app)** in Chrome or Edge. 
 # Clone the repo
 git clone https://github.com/henrynguyen6677/loomfx.git
 cd loomfx
+
+# Or use the new name
+# git clone https://github.com/henrynguyen6677/vellum.git
 
 # Install dependencies
 npm install
@@ -196,7 +199,7 @@ npm run preview
 - [x] macOS permission detection & guidance
 - [ ] PWA support (offline + installable)
 - [ ] WebCodecs encoding (better quality control)
-- [ ] Mobile camera-only recording (iOS Safari)
+- [x] Mobile camera-only recording (iOS Safari)
 - [ ] Video trimming before download
 - [ ] Custom recording area selection
 
@@ -212,6 +215,6 @@ MIT — free for personal and commercial use.
 
 **Built with ❤️ for people who value privacy.**
 
-[⬆ Back to top](#-loomfx)
+[⬆ Back to top](#-vellum)
 
 </div>
