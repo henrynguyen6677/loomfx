@@ -1,11 +1,11 @@
 ---
-description: Tạo Svelte component mới theo chuẩn project LoomFX (component + test)
+description: Tạo Svelte component mới theo chuẩn project Vellum (component + test)
 ---
 
 # Add Component Workflow
 
 ## Usage
-Tạo component mới cho LoomFX. Đặt tên PascalCase.
+Tạo component mới cho Vellum. Đặt tên PascalCase.
 
 ## Steps
 

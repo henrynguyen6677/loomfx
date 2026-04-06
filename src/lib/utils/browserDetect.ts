@@ -11,6 +11,7 @@ export interface BrowserCapabilities {
   isChromium: boolean;
   isFirefox: boolean;
   isSafari: boolean;
+  isMobile: boolean;
   browserName: string;
 }
 
@@ -23,6 +24,7 @@ export function detectBrowser(): BrowserCapabilities {
   const isChromium = /Chrome/.test(ua) && !/Edg/.test(ua) || /Edg/.test(ua);
   const isFirefox = /Firefox/.test(ua);
   const isSafari = /Safari/.test(ua) && !/Chrome/.test(ua);
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(ua);
 
   let browserName = 'Unknown';
   if (/Edg\//.test(ua)) browserName = 'Edge';
@@ -41,6 +43,7 @@ export function detectBrowser(): BrowserCapabilities {
     isChromium,
     isFirefox,
     isSafari,
+    isMobile,
     browserName,
   };
 

@@ -122,7 +122,7 @@ export class OPFSAdapter implements StorageAdapter {
 /**
  * IndexedDBAdapter — Universal fallback (all browsers)
  */
-const IDB_NAME = 'loomfx_recordings';
+const IDB_NAME = 'vellum_recordings';
 const IDB_STORE = 'chunks';
 const IDB_VERSION = 1;
 

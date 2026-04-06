@@ -35,8 +35,8 @@
         addToast(detail.type, detail.message);
       }
     };
-    window.addEventListener('loomfx:toast', handler);
-    return () => window.removeEventListener('loomfx:toast', handler);
+    window.addEventListener('vellum:toast', handler);
+    return () => window.removeEventListener('vellum:toast', handler);
   });
 
   const icons: Record<string, string> = {

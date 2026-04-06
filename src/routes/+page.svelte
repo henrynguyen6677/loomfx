@@ -23,8 +23,8 @@
       permissionError = detail?.errorCode ?? null;
       setTimeout(() => { errorDebounce = false; }, 500);
     };
-    window.addEventListener('loomfx:permission-error', handler);
-    return () => window.removeEventListener('loomfx:permission-error', handler);
+    window.addEventListener('vellum:permission-error', handler);
+    return () => window.removeEventListener('vellum:permission-error', handler);
   });
 
   // Keyboard shortcuts — dispatch events only, let orchestrator handle state
@@ -35,19 +35,19 @@
     switch (e.key.toLowerCase()) {
       case KEYBOARD_SHORTCUTS.startRecording:
         if (status === 'idle' || status === 'completed' || status === 'error') {
-          window.dispatchEvent(new CustomEvent('loomfx:start-recording'));
+          window.dispatchEvent(new CustomEvent('vellum:start-recording'));
         }
         break;
       case KEYBOARD_SHORTCUTS.pauseResume:
         if (status === 'recording') {
-          window.dispatchEvent(new CustomEvent('loomfx:pause-recording'));
+          window.dispatchEvent(new CustomEvent('vellum:pause-recording'));
         } else if (status === 'paused') {
-          window.dispatchEvent(new CustomEvent('loomfx:resume-recording'));
+          window.dispatchEvent(new CustomEvent('vellum:resume-recording'));
         }
         break;
       case KEYBOARD_SHORTCUTS.stopRecording:
         if (status === 'recording' || status === 'paused') {
-          window.dispatchEvent(new CustomEvent('loomfx:stop-recording'));
+          window.dispatchEvent(new CustomEvent('vellum:stop-recording'));
         }
         break;
       case KEYBOARD_SHORTCUTS.toggleWebcam:

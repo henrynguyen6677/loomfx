@@ -10,19 +10,19 @@
 
   function handlePauseResume() {
     if ($isRecording) {
-      window.dispatchEvent(new CustomEvent('loomfx:pause-recording'));
+      window.dispatchEvent(new CustomEvent('vellum:pause-recording'));
     } else if ($isPaused) {
-      window.dispatchEvent(new CustomEvent('loomfx:resume-recording'));
+      window.dispatchEvent(new CustomEvent('vellum:resume-recording'));
     }
   }
 
   function handleStop() {
-    window.dispatchEvent(new CustomEvent('loomfx:stop-recording'));
+    window.dispatchEvent(new CustomEvent('vellum:stop-recording'));
   }
 
   function handleDiscard() {
     if (confirm('Discard this recording?')) {
-      window.dispatchEvent(new CustomEvent('loomfx:stop-recording'));
+      window.dispatchEvent(new CustomEvent('vellum:stop-recording'));
       setTimeout(() => recordingStore.reset(), 500);
     }
   }

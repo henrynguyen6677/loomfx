@@ -1,6 +1,6 @@
 ---
 name: media-permissions
-description: Xử lý permission flow đa trình duyệt, macOS quirks và error recovery cho LoomFX
+description: Xử lý permission flow đa trình duyệt, macOS quirks và error recovery cho Vellum
 ---
 
 # Media Permissions Skill
@@ -308,7 +308,7 @@ export class PermissionManager {
       },
       PERMISSION_DENIED_SCREEN: {
         title: 'Screen Capture Blocked',
-        message: 'You denied screen sharing. LoomFX needs this to record your screen.',
+        message: 'You denied screen sharing. Vellum needs this to record your screen.',
         action: 'Click "Start Recording" again and select a screen/window to share.',
       },
       PERMISSION_DENIED_CAMERA: {

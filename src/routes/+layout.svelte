@@ -17,7 +17,7 @@
 </script>
 
 <svelte:head>
-  <title>LoomFX — Free Local Screen Recorder</title>
+  <title>Vellum — Free Local Screen Recorder</title>
   <meta name="description" content="Free, local-first screen recorder. No cloud, no limits, no cost. Record your screen with webcam overlay and save directly to your device." />
 </svelte:head>
 

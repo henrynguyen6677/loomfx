@@ -7,6 +7,7 @@
  * Flow: getDisplayMedia → [Compositor if webcam] → MediaRecorder → Blob → Download
  */
 
+import { detectBrowser, type BrowserCapabilities } from '$lib/utils/browserDetect';
 import { PermissionManager } from '$lib/services/capture/PermissionManager';
 import { AudioMixer } from '$lib/services/compositor/AudioMixer';
 import { CanvasCompositor } from '$lib/services/compositor/CanvasCompositor';
@@ -20,6 +21,7 @@ export class RecordingOrchestrator {
   private audioMixer: AudioMixer | null = null;
   private compositor: CanvasCompositor | null = null;
   private recorder: MediaRecorder | null = null;
+  private caps: BrowserCapabilities;
 
   private screenStream: MediaStream | null = null;
   private webcamStream: MediaStream | null = null;
@@ -28,21 +30,22 @@ export class RecordingOrchestrator {
   private isStarting = false;
 
   constructor() {
+    this.caps = detectBrowser();
     this.bindEvents();
-    console.log('[LoomFX] RecordingOrchestrator initialized');
+    console.log('[Vellum] RecordingOrchestrator initialized');
   }
 
   private bindEvents(): void {
-    window.addEventListener('loomfx:start-recording', () => this.start());
-    window.addEventListener('loomfx:stop-recording', () => this.stop());
-    window.addEventListener('loomfx:pause-recording', () => this.pause());
-    window.addEventListener('loomfx:resume-recording', () => this.resume());
-    window.addEventListener('loomfx:toggle-mic', (e) => {
+    window.addEventListener('vellum:start-recording', () => this.start());
+    window.addEventListener('vellum:stop-recording', () => this.stop());
+    window.addEventListener('vellum:pause-recording', () => this.pause());
+    window.addEventListener('vellum:resume-recording', () => this.resume());
+    window.addEventListener('vellum:toggle-mic', (e) => {
       const enabled = (e as CustomEvent).detail?.enabled;
       this.audioMixer?.muteMic(!enabled);
     });
-    window.addEventListener('loomfx:screen-ended', () => {
-      console.log('[LoomFX] Screen sharing ended by user');
+    window.addEventListener('vellum:screen-ended', () => {
+      console.log('[Vellum] Screen sharing ended by user');
       this.stop();
     });
   }
@@ -56,10 +59,11 @@ export class RecordingOrchestrator {
     const recordingState = get(recordingStore);
     const useWebcam = recordingState.webcamEnabled;
 
-    console.log('[LoomFX] Starting recording...', {
+    console.log('[Vellum] Starting recording...', {
       preset: settings.qualityPreset,
       webcam: useWebcam,
       mic: recordingState.micEnabled,
+      isMobile: this.caps.isMobile
     });
 
     try {
@@ -73,34 +77,43 @@ export class RecordingOrchestrator {
 
       recordingStore.setStatus('requesting');
 
-      // 1. Screen capture (REQUIRED)
-      const screenResult = await this.permissionManager.requestScreen(true);
-      if (!screenResult.granted) {
-        // User just clicked Cancel — go back to idle silently
-        if (screenResult.errorCode.startsWith('USER_CANCELLED')) {
-          console.log('[LoomFX] User cancelled screen picker');
-        } else {
-          // Actual permission error (e.g. macOS blocked)
-          this.emitPermissionError(screenResult.errorCode);
+      // 1. Screen capture (REQUIRED on desktop, SKIPPED on mobile)
+      if (!this.caps.isMobile) {
+        const screenResult = await this.permissionManager.requestScreen(true);
+        if (!screenResult.granted) {
+          if (screenResult.errorCode.startsWith('USER_CANCELLED')) {
+            console.log('[Vellum] User cancelled screen picker');
+          } else {
+            this.emitPermissionError(screenResult.errorCode);
+          }
+          recordingStore.setStatus('idle');
+          this.isStarting = false;
+          return;
         }
-        recordingStore.setStatus('idle');
-        this.isStarting = false;
-        return;
+        this.screenStream = screenResult.stream;
+
+        const videoTrack = this.screenStream.getVideoTracks()[0];
+        videoTrack?.addEventListener('ended', () => {
+          window.dispatchEvent(new CustomEvent('vellum:screen-ended'));
+        });
+
+        const vs = videoTrack?.getSettings();
+        console.log('[Vellum] Screen ✓', { w: vs?.width, h: vs?.height });
+
+        // Dispatch to LivePreview
+        window.dispatchEvent(
+          new CustomEvent('vellum:screen-stream', { detail: { stream: this.screenStream } })
+        );
+      } else {
+        console.log('[Vellum] Mobile mode: Skipping screen capture');
+        if (!this.caps.hasGetDisplayMedia) {
+          this.emitPermissionError('MOBILE_CAMERA_ONLY');
+        }
+        // On mobile, if neither camera nor screen is selected, we MUST have camera
+        if (!useWebcam) {
+          recordingStore.toggleWebcam();
+        }
       }
-      this.screenStream = screenResult.stream;
-
-      const videoTrack = this.screenStream.getVideoTracks()[0];
-      videoTrack?.addEventListener('ended', () => {
-        window.dispatchEvent(new CustomEvent('loomfx:screen-ended'));
-      });
-
-      const vs = videoTrack?.getSettings();
-      console.log('[LoomFX] Screen ✓', { w: vs?.width, h: vs?.height });
-
-      // Dispatch to LivePreview
-      window.dispatchEvent(
-        new CustomEvent('loomfx:screen-stream', { detail: { stream: this.screenStream } })
-      );
 
       // 2. Camera (OPTIONAL)
       if (useWebcam) {
@@ -110,7 +123,7 @@ export class RecordingOrchestrator {
         if (camResult.granted) {
           this.webcamStream = camResult.stream;
           recordingStore.setWebcamStream(this.webcamStream);
-          console.log('[LoomFX] Camera ✓');
+          console.log('[Vellum] Camera ✓');
         } else {
           recordingStore.toggleWebcam();
           this.emitToast('warning', 'Camera unavailable — recording without webcam');
@@ -124,7 +137,7 @@ export class RecordingOrchestrator {
         );
         if (micResult.granted) {
           this.micStream = micResult.stream;
-          console.log('[LoomFX] Mic ✓');
+          console.log('[Vellum] Mic ✓');
         } else {
           recordingStore.toggleMic();
           this.emitToast('warning', 'Microphone unavailable — recording silently');
@@ -136,13 +149,23 @@ export class RecordingOrchestrator {
       const hasWebcamNow = !!this.webcamStream;
 
       if (hasWebcamNow) {
-        // Use canvas compositor to bake webcam into video
-        const screenW = vs?.width ?? 1920;
-        const screenH = vs?.height ?? 1080;
+        // Use canvas compositor
+        let targetW = 1920;
+        let targetH = 1080;
+
+        if (this.screenStream) {
+          const vs = this.screenStream.getVideoTracks()[0]?.getSettings();
+          targetW = vs?.width ?? 1920;
+          targetH = vs?.height ?? 1080;
+        } else if (this.webcamStream) {
+          const vs = this.webcamStream.getVideoTracks()[0]?.getSettings();
+          targetW = vs?.width ?? 1280;
+          targetH = vs?.height ?? 720;
+        }
 
         this.compositor = new CanvasCompositor({
-          width: screenW,
-          height: screenH,
+          width: targetW,
+          height: targetH,
           fps: preset.fps,
           webcamSize: settings.webcamSize,
           webcamPosition: settings.webcamPosition,
@@ -153,26 +176,26 @@ export class RecordingOrchestrator {
         await this.compositor.attachWebcamStream(this.webcamStream!);
         const compositorStream = this.compositor.start();
         compositorStream.getVideoTracks().forEach((t) => recordingStream.addTrack(t));
-        console.log('[LoomFX] Compositor started ✓ (webcam baked into video)');
-      } else {
+        console.log('[Vellum] Compositor started ✓');
+      } else if (this.screenStream) {
         // Direct screen recording (no compositor needed)
-        this.screenStream.getVideoTracks().forEach((t) => recordingStream.addTrack(t));
-        console.log('[LoomFX] Direct screen recording (no webcam)');
+        this.screenStream!.getVideoTracks().forEach((t) => recordingStream.addTrack(t));
+        console.log('[Vellum] Direct screen recording (no webcam)');
       }
 
       // Audio mixing
-      const hasSystemAudio = this.screenStream.getAudioTracks().length > 0;
+      const hasSystemAudio = (this.screenStream?.getAudioTracks().length ?? 0) > 0;
       const hasMicAudio = !!this.micStream;
 
       if (hasSystemAudio || hasMicAudio) {
         this.audioMixer = new AudioMixer();
         await this.audioMixer.resume();
         if (hasMicAudio) this.audioMixer.connectMicrophone(this.micStream!);
-        if (hasSystemAudio) {
+        if (hasSystemAudio && this.screenStream) {
           this.audioMixer.connectSystemAudio(this.screenStream);
-          console.log('[LoomFX] System audio ✓');
+          console.log('[Vellum] System audio ✓');
         }
-        this.audioMixer.getOutputStream().getAudioTracks().forEach((t) => recordingStream.addTrack(t));
+        this.audioMixer!.getOutputStream().getAudioTracks().forEach((t) => recordingStream.addTrack(t));
       }
 
       // 5. MediaRecorder
@@ -200,22 +223,22 @@ export class RecordingOrchestrator {
       if (settings.countdownEnabled) {
         recordingStore.setStatus('countdown');
         const onDone = () => {
-          window.removeEventListener('loomfx:countdown-done', onDone);
+          window.removeEventListener('vellum:countdown-done', onDone);
           this.recorder?.start(1000);
           recordingStore.setStatus('recording');
           this.emitToast('success', 'Recording started');
-          console.log('[LoomFX] 🔴 Recording started');
+          console.log('[Vellum] 🔴 Recording started');
         };
-        window.addEventListener('loomfx:countdown-done', onDone);
+        window.addEventListener('vellum:countdown-done', onDone);
       } else {
         this.recorder.start(1000);
         recordingStore.setStatus('recording');
         this.emitToast('success', 'Recording started');
-        console.log('[LoomFX] 🔴 Recording started');
+        console.log('[Vellum] 🔴 Recording started');
       }
 
     } catch (err) {
-      console.error('[LoomFX] Start failed:', err);
+      console.error('[Vellum] Start failed:', err);
       recordingStore.setError((err as Error).message);
       this.emitToast('error', `Failed: ${(err as Error).message}`);
       this.cleanupStreams();
@@ -240,9 +263,9 @@ export class RecordingOrchestrator {
           const blob = new Blob(this.chunks, { type: mimeType });
           const ext = mimeType.includes('mp4') ? 'mp4' : 'webm';
           const ts = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-          const filename = `LoomFX_${ts}.${ext}`;
+          const filename = `Vellum_${ts}.${ext}`;
 
-          console.log('[LoomFX] Video:', {
+          console.log('[Vellum] Video:', {
             size: `${(blob.size / 1048576).toFixed(1)} MB`,
             chunks: this.chunks.length,
           });
@@ -250,7 +273,7 @@ export class RecordingOrchestrator {
           recordingStore.setOutput(blob, filename);
           this.emitToast('success', 'Recording complete!');
         } catch (err) {
-          console.error('[LoomFX] Save failed:', err);
+          console.error('[Vellum] Save failed:', err);
           this.emitToast('error', 'Failed to save');
           recordingStore.setStatus('error');
         }
@@ -297,8 +320,8 @@ export class RecordingOrchestrator {
     this.cleanupStreams();
     this.recorder = null;
     this.chunks = [];
-    window.dispatchEvent(new CustomEvent('loomfx:recording-cleanup'));
-    console.log('[LoomFX] Cleanup complete');
+    window.dispatchEvent(new CustomEvent('vellum:recording-cleanup'));
+    console.log('[Vellum] Cleanup complete');
   }
 
   private getSupportedMimeType(): string {
@@ -315,11 +338,11 @@ export class RecordingOrchestrator {
   }
 
   private emitToast(type: 'success' | 'error' | 'warning' | 'info', message: string): void {
-    window.dispatchEvent(new CustomEvent('loomfx:toast', { detail: { type, message } }));
+    window.dispatchEvent(new CustomEvent('vellum:toast', { detail: { type, message } }));
   }
 
   private emitPermissionError(errorCode: string): void {
-    window.dispatchEvent(new CustomEvent('loomfx:permission-error', { detail: { errorCode } }));
+    window.dispatchEvent(new CustomEvent('vellum:permission-error', { detail: { errorCode } }));
   }
 
   dispose(): void {

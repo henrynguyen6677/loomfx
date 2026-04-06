@@ -31,7 +31,7 @@
       PERMISSION_DENIED_SCREEN: {
         title: "Screen Capture Blocked",
         message:
-          "Screen sharing was denied. LoomFX needs this to record your screen.",
+          "Screen sharing was denied. Vellum needs this to record your screen.",
         action:
           'Click "Start Recording" again and select a screen/window to share.',
         icon: "🔒",
@@ -57,6 +57,13 @@
         action: "Connect a webcam and try again, or continue without webcam.",
         icon: "🔌",
       },
+      MOBILE_CAMERA_ONLY: {
+        title: "Mobile: Camera Mode Only",
+        message:
+          "Screen recording is not supported in mobile browsers. Vellum will record your camera instead.",
+        action: "Recording will be full-screen camera only.",
+        icon: "📱",
+      },
       BROWSER_NOT_SUPPORTED: {
         title: "Browser Not Fully Supported",
         message:
@@ -64,7 +71,7 @@
           caps.browserName +
           ". For the best experience, use Chrome or Edge.",
         action:
-          "Download Chrome from google.com/chrome for the full LoomFX experience.",
+          "Download Chrome from google.com/chrome for the full Vellum experience.",
         icon: "⚠️",
       },
     };

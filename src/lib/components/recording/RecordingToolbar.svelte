@@ -3,6 +3,9 @@
   import { recordingStore, isRecording, isPaused, canRecord } from '$lib/stores/recordingStore';
   import { settingsStore } from '$lib/stores/settingsStore';
   import { QUALITY_PRESETS } from '$lib/utils/constants';
+  import { detectBrowser } from '$lib/utils/browserDetect';
+
+  const caps = detectBrowser();
 
   const { status, elapsedSeconds, webcamEnabled, micEnabled, recordingSize } = $derived($recordingStore);
   const { qualityPreset } = $derived($settingsStore);
@@ -22,28 +25,28 @@
   function handleStartStop() {
     if (isRequesting) return;
     if ($canRecord) {
-      window.dispatchEvent(new CustomEvent('loomfx:start-recording'));
+      window.dispatchEvent(new CustomEvent('vellum:start-recording'));
     } else if ($isRecording || $isPaused) {
-      window.dispatchEvent(new CustomEvent('loomfx:stop-recording'));
+      window.dispatchEvent(new CustomEvent('vellum:stop-recording'));
     }
   }
 
   function handlePauseResume() {
     if ($isRecording) {
-      window.dispatchEvent(new CustomEvent('loomfx:pause-recording'));
+      window.dispatchEvent(new CustomEvent('vellum:pause-recording'));
     } else if ($isPaused) {
-      window.dispatchEvent(new CustomEvent('loomfx:resume-recording'));
+      window.dispatchEvent(new CustomEvent('vellum:resume-recording'));
     }
   }
 
   function handleToggleWebcam() {
     recordingStore.toggleWebcam();
-    window.dispatchEvent(new CustomEvent('loomfx:toggle-webcam', { detail: { enabled: !webcamEnabled } }));
+    window.dispatchEvent(new CustomEvent('vellum:toggle-webcam', { detail: { enabled: !webcamEnabled } }));
   }
 
   function handleToggleMic() {
     recordingStore.toggleMic();
-    window.dispatchEvent(new CustomEvent('loomfx:toggle-mic', { detail: { enabled: !micEnabled } }));
+    window.dispatchEvent(new CustomEvent('vellum:toggle-mic', { detail: { enabled: !micEnabled } }));
   }
 
   function handleOpenSettings() {
@@ -128,8 +131,9 @@
       class="icon-btn"
       class:active={webcamEnabled}
       onclick={handleToggleWebcam}
-      aria-label={webcamEnabled ? 'Disable Webcam' : 'Enable Webcam'}
+      aria-label={webcamEnabled ? (caps.isMobile ? 'Disable Camera' : 'Disable Webcam') : (caps.isMobile ? 'Enable Camera' : 'Enable Webcam')}
       id="btn-toggle-webcam"
+      title={caps.isMobile ? 'Camera' : 'Webcam'}
     >
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
@@ -183,7 +187,7 @@
     left: 50%;
     transform: translateX(-50%);
     border-radius: var(--radius-2xl);
-    min-width: 380px;
+    min-width: 320px;
     max-width: 520px;
     z-index: var(--z-sticky);
   }

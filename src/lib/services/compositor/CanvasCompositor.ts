@@ -79,7 +79,11 @@ export class CanvasCompositor {
     });
   }
 
-  async attachScreenStream(stream: MediaStream): Promise<void> {
+  async attachScreenStream(stream: MediaStream | null): Promise<void> {
+    if (!stream) {
+      this.screenVideo.srcObject = null;
+      return;
+    }
     this.screenVideo.srcObject = stream;
     await this.screenVideo.play();
     await this.waitForVideo(this.screenVideo);
@@ -102,7 +106,7 @@ export class CanvasCompositor {
 
     // Dispatch preview canvas for LivePreview component
     window.dispatchEvent(
-      new CustomEvent('loomfx:preview-canvas', { detail: { canvas: this.canvas } })
+      new CustomEvent('vellum:preview-canvas', { detail: { canvas: this.canvas } })
     );
 
     return this.outputStream;
@@ -130,14 +134,53 @@ export class CanvasCompositor {
     ctx.fillRect(0, 0, width, height);
 
     // 2. Draw screen (scale-to-fit with letterboxing)
-    if (this.screenVideo.readyState >= 2) {
+    const hasScreen = this.screenVideo.srcObject !== null && this.screenVideo.readyState >= 2;
+    if (hasScreen) {
       this.drawScreenLayer();
     }
 
-    // 3. Draw webcam bubble with circle clipping
+    // 3. Draw webcam bubble or full-screen camera
     if (this.config.showWebcam && this.webcamVideo.readyState >= 2) {
-      this.drawWebcamBubble();
+      if (hasScreen) {
+        this.drawWebcamBubble();
+      } else {
+        this.drawFullScreenCamera();
+      }
     }
+  }
+
+  private drawFullScreenCamera(): void {
+    const { width, height } = this.config;
+    const v = this.webcamVideo;
+    const vw = v.videoWidth;
+    const vh = v.videoHeight;
+
+    if (!vw || !vh) return;
+
+    this.ctx.save();
+    // Mirror horizontally (selfie mode)
+    this.ctx.translate(width, 0);
+    this.ctx.scale(-1, 1);
+
+    const videoRatio = vw / vh;
+    const canvasRatio = width / height;
+
+    let dw = width;
+    let dh = height;
+    let dx = 0;
+    let dy = 0;
+
+    // Fill the canvas (crop if necessary instead of letterboxing for mobile camera)
+    if (videoRatio > canvasRatio) {
+      dw = height * videoRatio;
+      dx = (width - dw) / 2;
+    } else {
+      dh = width / videoRatio;
+      dy = (height - dh) / 2;
+    }
+
+    this.ctx.drawImage(v, dx, dy, dw, dh);
+    this.ctx.restore();
   }
 
   private drawScreenLayer(): void {

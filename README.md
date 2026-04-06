@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🎬 LoomFX
+# 🎬 Vellum
 
 ### Free, Local-First Screen Recorder — No Cloud, No Signup, No Limits
 
@@ -12,11 +12,11 @@
 
 </div>
 
-## 🚀 Why LoomFX?
+## 🚀 Why Vellum?
 
-Most screen recorders upload your videos to the cloud, require accounts, and charge monthly fees. **LoomFX is different.**
+Most screen recorders upload your videos to the cloud, require accounts, and charge monthly fees. **Vellum is different.**
 
-| | LoomFX | Loom (Free) | OBS Studio |
+| | Vellum | Loom (Free) | OBS Studio |
 |---|:---:|:---:|:---:|
 | **100% Local** | ✅ | ❌ Cloud-based | ✅ |
 | **No Account Required** | ✅ | ❌ | ✅ |
