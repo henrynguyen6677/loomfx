@@ -60,21 +60,37 @@ export class CanvasCompositor {
     video.autoplay = true;
     video.muted = true;
     video.playsInline = true;
-    // IMPORTANT: Do NOT use opacity:0 or off-screen position — browser won't decode frames.
-    // Instead, keep visible but behind everything with z-index:-1
-    video.style.cssText = 'position:fixed;top:0;left:0;width:1px;height:1px;pointer-events:none;z-index:-1;';
+    // CRITICAL: Use clip-path to hide, NOT width:1px or opacity:0.
+    // Browser needs full-size element to decode video frames.
+    video.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;pointer-events:none;z-index:-9999;clip-path:inset(100%);';
     document.body.appendChild(video);
     return video;
+  }
+
+  /** Wait for video to have decodable frames */
+  private waitForVideo(video: HTMLVideoElement, timeoutMs = 3000): Promise<void> {
+    return new Promise((resolve) => {
+      if (video.readyState >= 2) {
+        resolve();
+        return;
+      }
+      const timer = setTimeout(resolve, timeoutMs);
+      video.addEventListener('loadeddata', () => { clearTimeout(timer); resolve(); }, { once: true });
+    });
   }
 
   async attachScreenStream(stream: MediaStream): Promise<void> {
     this.screenVideo.srcObject = stream;
     await this.screenVideo.play();
+    await this.waitForVideo(this.screenVideo);
+    console.log('[Compositor] Screen video ready:', this.screenVideo.videoWidth, 'x', this.screenVideo.videoHeight);
   }
 
   async attachWebcamStream(stream: MediaStream): Promise<void> {
     this.webcamVideo.srcObject = stream;
     await this.webcamVideo.play();
+    await this.waitForVideo(this.webcamVideo);
+    console.log('[Compositor] Webcam video ready:', this.webcamVideo.videoWidth, 'x', this.webcamVideo.videoHeight);
   }
 
   start(): MediaStream {
