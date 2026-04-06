@@ -186,7 +186,10 @@ export class RecordingOrchestrator {
       });
 
       this.recorder.ondataavailable = (e) => {
-        if (e.data.size > 0) this.chunks.push(e.data);
+        if (e.data.size > 0) {
+          this.chunks.push(e.data);
+          recordingStore.addRecordingSize(e.data.size);
+        }
       };
 
       this.recorder.onerror = () => {

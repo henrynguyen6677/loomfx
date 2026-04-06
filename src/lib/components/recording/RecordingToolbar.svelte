@@ -1,17 +1,27 @@
 <script lang="ts">
   import { formatTime } from '$lib/utils/formatTime';
   import { recordingStore, isRecording, isPaused, canRecord } from '$lib/stores/recordingStore';
+  import { settingsStore } from '$lib/stores/settingsStore';
+  import { QUALITY_PRESETS } from '$lib/utils/constants';
 
-  const { status, elapsedSeconds, webcamEnabled, micEnabled } = $derived($recordingStore);
+  const { status, elapsedSeconds, webcamEnabled, micEnabled, recordingSize } = $derived($recordingStore);
+  const { qualityPreset } = $derived($settingsStore);
 
   const isRequesting = $derived(status === 'requesting' || status === 'stopping' || status === 'countdown');
   const isActiveRecording = $derived(status === 'recording' || status === 'paused');
+  const isIdle = $derived(status === 'idle' || status === 'completed' || status === 'error');
+
+  const qualityLabel = $derived(QUALITY_PRESETS[qualityPreset]?.label ?? 'Medium');
+
+  function formatSize(bytes: number): string {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1048576) return `${(bytes / 1024).toFixed(0)} KB`;
+    return `${(bytes / 1048576).toFixed(1)} MB`;
+  }
 
   function handleStartStop() {
-    if (isRequesting) return; // Debounce — ignore clicks while processing
-
+    if (isRequesting) return;
     if ($canRecord) {
-      // Don't setStatus here — let the orchestrator handle state transitions
       window.dispatchEvent(new CustomEvent('loomfx:start-recording'));
     } else if ($isRecording || $isPaused) {
       window.dispatchEvent(new CustomEvent('loomfx:stop-recording'));
@@ -35,24 +45,50 @@
     recordingStore.toggleMic();
     window.dispatchEvent(new CustomEvent('loomfx:toggle-mic', { detail: { enabled: !micEnabled } }));
   }
+
+  function handleOpenSettings() {
+    recordingStore.toggleSettings();
+  }
 </script>
 
 <div class="toolbar glass" id="recording-toolbar">
-  <!-- Timer -->
-  <div class="toolbar-timer" class:active={isActiveRecording}>
-    {#if $isRecording}
-      <span class="timer-dot recording-pulse"></span>
-    {:else if $isPaused}
-      <span class="timer-dot paused"></span>
-    {:else if isRequesting}
-      <span class="timer-dot requesting"></span>
+  <!-- Left section -->
+  <div class="toolbar-left">
+    {#if isIdle}
+      <!-- Config summary when idle -->
+      <div class="config-summary">
+        <span class="config-badge">{qualityLabel}</span>
+        <span class="config-dot">·</span>
+        <span class="config-item" class:off={!webcamEnabled}>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+          {webcamEnabled ? 'On' : 'Off'}
+        </span>
+        <span class="config-dot">·</span>
+        <span class="config-item" class:off={!micEnabled}>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>
+          {micEnabled ? 'On' : 'Off'}
+        </span>
+      </div>
+    {:else}
+      <!-- Timer during recording -->
+      <div class="toolbar-timer" class:active={isActiveRecording}>
+        {#if $isRecording}
+          <span class="timer-dot recording-pulse"></span>
+        {:else if $isPaused}
+          <span class="timer-dot paused"></span>
+        {:else if isRequesting}
+          <span class="timer-dot requesting"></span>
+        {/if}
+        <span class="timer-text">{formatTime(elapsedSeconds)}</span>
+        {#if isActiveRecording && recordingSize > 0}
+          <span class="size-badge">{formatSize(recordingSize)}</span>
+        {/if}
+      </div>
     {/if}
-    <span class="timer-text">{formatTime(elapsedSeconds)}</span>
   </div>
 
   <!-- Center Controls -->
   <div class="toolbar-controls">
-    <!-- Start / Stop Button -->
     <button
       class="control-btn primary"
       class:recording={isActiveRecording}
@@ -63,7 +99,6 @@
       id="btn-start-stop"
     >
       {#if isRequesting}
-        <!-- Spinner -->
         <svg class="spinner" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
           <circle cx="12" cy="12" r="8" stroke-dasharray="25 25" stroke-linecap="round"/>
         </svg>
@@ -78,7 +113,6 @@
       {/if}
     </button>
 
-    <!-- Pause / Resume (only during active recording) -->
     {#if isActiveRecording}
       <button
         class="control-btn secondary"
@@ -137,6 +171,20 @@
         <span class="toggle-slash"></span>
       {/if}
     </button>
+
+    <!-- Settings Button -->
+    <button
+      class="toggle-btn settings-btn"
+      onclick={handleOpenSettings}
+      aria-label="Open Settings"
+      title="Settings"
+      id="btn-settings"
+    >
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+      </svg>
+    </button>
   </div>
 </div>
 
@@ -153,16 +201,57 @@
     transform: translateX(-50%);
     border-radius: var(--radius-2xl);
     min-width: 420px;
-    max-width: 560px;
+    max-width: 600px;
     width: auto;
     z-index: var(--z-sticky);
   }
 
+  /* Config summary (idle state) */
+  .config-summary {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+  }
+
+  .config-badge {
+    padding: 2px 8px;
+    border-radius: 100px;
+    background: rgba(108, 92, 231, 0.15);
+    color: var(--color-primary-light);
+    font-weight: var(--font-weight-medium);
+    font-size: 11px;
+    white-space: nowrap;
+  }
+
+  .config-dot {
+    color: var(--color-text-muted);
+    opacity: 0.4;
+  }
+
+  .config-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    color: var(--color-text-secondary);
+    white-space: nowrap;
+  }
+
+  .config-item.off {
+    color: var(--color-text-muted);
+    opacity: 0.5;
+  }
+
+  .toolbar-left {
+    min-width: 140px;
+  }
+
+  /* Timer (recording state) */
   .toolbar-timer {
     display: flex;
     align-items: center;
     gap: var(--space-2);
-    min-width: 90px;
     opacity: 0.4;
     transition: opacity var(--transition-normal);
   }
@@ -196,6 +285,17 @@
     letter-spacing: 0.04em;
   }
 
+  .size-badge {
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 100px;
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--color-text-muted);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  /* Controls */
   .toolbar-controls {
     display: flex;
     align-items: center;
@@ -259,6 +359,7 @@
     border-color: var(--color-border-hover);
   }
 
+  /* Toggles */
   .toolbar-toggles {
     display: flex;
     align-items: center;
@@ -287,6 +388,13 @@
     color: var(--color-text-primary);
   }
 
+  .settings-btn {
+    border-left: 1px solid var(--color-border);
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+    padding-left: var(--space-2);
+    margin-left: var(--space-1);
+  }
+
   .toggle-slash {
     position: absolute;
     width: 2px;
@@ -310,14 +418,16 @@
     .toolbar {
       min-width: auto;
       width: calc(100% - var(--space-6));
-      max-width: 420px;
+      max-width: 480px;
       padding: 0 var(--space-4);
       bottom: var(--space-3);
       height: 60px;
     }
+    .toolbar-left { min-width: 100px; }
     .control-btn.primary { width: 44px; height: 44px; }
     .control-btn.secondary { width: 34px; height: 34px; }
     .toggle-btn { width: 34px; height: 34px; }
+    .config-badge { font-size: 10px; }
   }
 
   @media (max-width: 480px) {
@@ -329,10 +439,11 @@
       height: 54px;
       border-radius: var(--radius-xl);
     }
-    .toolbar-timer { min-width: 50px; }
+    .toolbar-left { min-width: 50px; }
     .timer-text { font-size: var(--font-size-xs); }
     .control-btn.primary { width: 40px; height: 40px; }
     .control-btn.secondary { width: 30px; height: 30px; }
     .toggle-btn { width: 30px; height: 30px; }
+    .config-summary { gap: 4px; font-size: 10px; }
   }
 </style>
