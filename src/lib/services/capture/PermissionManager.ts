@@ -43,7 +43,7 @@ export class PermissionManager {
 
       const stream = await navigator.mediaDevices.getDisplayMedia(options);
 
-      // Bring focus back to the LoomFX tab after screen picker
+      // Bring focus back to the Vellum tab after screen picker
       window.focus();
 
       // Check for macOS black screen issue
@@ -127,7 +127,7 @@ export class PermissionManager {
     if (!this.caps.isSecureContext) {
       missing.push('Secure context (HTTPS or localhost) is required');
     }
-    if (!this.caps.hasGetDisplayMedia) {
+    if (!this.caps.hasGetDisplayMedia && !this.caps.isMobile) {
       missing.push('Screen Capture API is not available in this browser');
     }
     if (!this.caps.hasGetUserMedia) {

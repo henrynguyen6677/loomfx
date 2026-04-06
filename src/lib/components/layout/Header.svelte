@@ -11,7 +11,7 @@
 
 <header class="header glass">
   <div class="header-left">
-    <img src="/favicon.svg" alt="LoomFX" class="header-logo" />
+    <img src="/favicon.svg" alt="Vellum" class="header-logo" />
     <h1 class="header-title">{APP_NAME}</h1>
     {#if $isRecording}
       <span class="header-badge recording-pulse">REC</span>

@@ -1,6 +1,6 @@
 {
-  "name": "LoomFX — Screen Recorder",
-  "short_name": "LoomFX",
+  "name": "Vellum — Screen Recorder",
+  "short_name": "Vellum",
   "description": "Free, local-first screen recorder. No cloud, no limits, no cost.",
   "start_url": "/",
   "display": "standalone",

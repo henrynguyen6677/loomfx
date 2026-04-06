@@ -1,6 +1,6 @@
-/** LoomFX Application Constants */
+/** Vellum Application Constants */
 
-export const APP_NAME = 'LoomFX';
+export const APP_NAME = 'Vellum';
 export const APP_VERSION = '0.1.0';
 export const APP_DESCRIPTION = 'Free, local-first screen recorder. No cloud, no limits, no cost.';
 

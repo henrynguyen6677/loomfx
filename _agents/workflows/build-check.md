@@ -1,5 +1,5 @@
 ---
-description: Kiểm tra lint, type-check và build production bundle cho LoomFX
+description: Kiểm tra lint, type-check và build production bundle cho Vellum
 ---
 
 # Build Check Workflow

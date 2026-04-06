@@ -39,7 +39,7 @@ export class ScreenCaptureService {
     if (videoTrack) {
       videoTrack.addEventListener('ended', () => {
         this.stop();
-        window.dispatchEvent(new CustomEvent('loomfx:screen-ended'));
+        window.dispatchEvent(new CustomEvent('vellum:screen-ended'));
       });
     }
 

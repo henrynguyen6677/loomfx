@@ -1,5 +1,5 @@
 ---
-description: Khởi tạo môi trường phát triển LoomFX, cài đặt dependencies và khởi chạy dev server
+description: Khởi tạo môi trường phát triển Vellum, cài đặt dependencies và khởi chạy dev server
 ---
 
 # Dev Setup Workflow

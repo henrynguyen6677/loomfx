@@ -11,7 +11,7 @@
         clearInterval(interval);
         visible = false;
         recordingStore.setStatus('recording');
-        window.dispatchEvent(new CustomEvent('loomfx:countdown-done'));
+        window.dispatchEvent(new CustomEvent('vellum:countdown-done'));
       }
     }, 1000);
 

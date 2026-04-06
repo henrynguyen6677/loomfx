@@ -17,9 +17,9 @@
         videoEl.srcObject = stream;
         videoEl.play().then(() => {
           hasStream = true;
-          console.log('[LoomFX] LivePreview: stream attached, readyState:', videoEl?.readyState);
+          console.log('[Vellum] LivePreview: stream attached, readyState:', videoEl?.readyState);
         }).catch((err) => {
-          console.error('[LoomFX] LivePreview: play failed', err);
+          console.error('[Vellum] LivePreview: play failed', err);
         });
       }
     };
@@ -31,12 +31,12 @@
       }
     };
 
-    window.addEventListener('loomfx:screen-stream', handleStream);
-    window.addEventListener('loomfx:recording-cleanup', handleCleanup);
+    window.addEventListener('vellum:screen-stream', handleStream);
+    window.addEventListener('vellum:recording-cleanup', handleCleanup);
 
     return () => {
-      window.removeEventListener('loomfx:screen-stream', handleStream);
-      window.removeEventListener('loomfx:recording-cleanup', handleCleanup);
+      window.removeEventListener('vellum:screen-stream', handleStream);
+      window.removeEventListener('vellum:recording-cleanup', handleCleanup);
     };
   });
 </script>

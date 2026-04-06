@@ -1,5 +1,5 @@
 ---
-description: Tạo service class mới theo pattern dự án LoomFX (interface + class + test)
+description: Tạo service class mới theo pattern dự án Vellum (interface + class + test)
 ---
 
 # Add Service Workflow

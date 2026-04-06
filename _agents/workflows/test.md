@@ -1,5 +1,5 @@
 ---
-description: Chạy test suite Vitest cho LoomFX và hiển thị coverage report
+description: Chạy test suite Vitest cho Vellum và hiển thị coverage report
 ---
 
 # Test Workflow

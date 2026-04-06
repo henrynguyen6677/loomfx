@@ -13,7 +13,7 @@ interface SettingsState {
   theme: 'dark' | 'light' | 'system';
 }
 
-const STORAGE_KEY = 'loomfx_settings';
+const STORAGE_KEY = 'vellum_settings';
 
 function loadSettings(): SettingsState {
   const defaults: SettingsState = {

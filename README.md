@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🎬 LoomFX
+# 🎬 Vellum
 
 ### Free, Local-First Screen Recorder — No Cloud, No Signup, No Limits
 
@@ -12,17 +12,17 @@
 
 </div>
 
-## 🚀 Why LoomFX?
+## 🚀 Why Vellum?
 
-Most screen recorders upload your videos to the cloud, require accounts, and charge monthly fees. **LoomFX is different.**
+Most screen recorders upload your videos to the cloud, require accounts, and charge monthly fees. **Vellum is different.**
 
-| | LoomFX | Loom (Free) | OBS Studio |
+| | Vellum | Loom (Free) | OBS Studio |
 |---|:---:|:---:|:---:|
 | **100% Local** | ✅ | ❌ Cloud-based | ✅ |
 | **No Account Required** | ✅ | ❌ | ✅ |
 | **Works in Browser** | ✅ | ✅ | ❌ Desktop app |
 | **Webcam Overlay** | ✅ Circle bubble | ✅ | ✅ |
-| **System Audio** | ✅ | ✅ | ✅ |
+| **System Audio** | ✅ (Chromium) | ✅ | ✅ |
 | **Open Source** | ✅ MIT | ❌ | ✅ |
 | **No Upload Limit** | ✅ Unlimited | ❌ 5 min | ✅ |
 | **Zero Install** | ✅ | ✅ | ❌ |
@@ -37,7 +37,7 @@ Most screen recorders upload your videos to the cloud, require accounts, and cha
 
 🎥 **Webcam Overlay** — Circle webcam bubble baked directly into your video, with adjustable position & size
 
-🎙️ **Audio Capture** — Mix microphone + system audio seamlessly
+🎙️ **Audio Capture** — Mix microphone + system audio seamlessly (system audio on Chromium)
 
 ⏸️ **Pause & Resume** — Take breaks during long recordings without creating multiple files
 
@@ -50,6 +50,19 @@ Most screen recorders upload your videos to the cloud, require accounts, and cha
 📱 **Responsive** — Works on desktop, tablet, and mobile viewports
 
 🔒 **Privacy First** — Zero telemetry, zero analytics, zero server calls
+
+---
+
+## 🌐 Browser Support
+
+| Browser | Screen Capture | System Audio | Webcam | Storage |
+|---|:---:|:---:|:---:|---|
+| **Chrome / Edge** | ✅ | ✅ | ✅ | File System API (direct to disk) |
+| **Firefox** | ✅ | ❌ | ✅ | OPFS / IndexedDB |
+| **Safari (macOS)** | ✅ | ❌ | ✅ | OPFS / IndexedDB |
+| **Safari (iOS)** | ❌ | ❌ | ✅ | IndexedDB (camera-only) |
+
+> **Note:** On macOS, you may need to grant Screen Recording permission in **System Settings → Privacy & Security → Screen Recording** for your browser.
 
 ---
 
@@ -75,7 +88,7 @@ Just open **[loomfx.vercel.app](https://loomfx.vercel.app)** in Chrome or Edge. 
 
 ```bash
 # Clone the repo
-git clone https://github.com/henrynguyen/loomfx.git
+git clone https://github.com/henrynguyen6677/loomfx.git
 cd loomfx
 
 # Install dependencies
@@ -99,13 +112,13 @@ Open `http://localhost:5173` and start recording.
 | **Screen Capture** | `getDisplayMedia` API |
 | **Video Encoding** | `MediaRecorder` + Canvas Compositor |
 | **Audio** | Web Audio API (`AudioContext` mixer) |
-| **Storage** | Blob URL → Direct download |
+| **Storage** | File System API / OPFS / IndexedDB (auto-detect) |
 | **Deployment** | Vercel (Static adapter) |
-| **Testing** | Vitest (51 tests passing) |
+| **Testing** | Vitest |
 
 ---
 
-## 📋 How It Works
+## 📋 Architecture
 
 ```
 ┌──────────────┐     ┌──────────────┐     ┌──────────────┐
@@ -127,8 +140,13 @@ Open `http://localhost:5173` and start recording.
          └────────────────┬────────────────────────┘
                           │
                           ▼
+              ┌───────────────────────┐
+              │   Storage Adapter     │
+              │  FS API / OPFS / IDB  │
+              └───────────┬───────────┘
+                          │
+                          ▼
                   ┌───────────────┐
-                  │  Blob → File  │
                   │   Download    │
                   └───────────────┘
 ```
@@ -173,9 +191,12 @@ npm run preview
 - [x] Minimal settings drawer
 - [x] Responsive design
 - [x] Deploy to Vercel
+- [x] Cross-browser support (Chrome, Firefox, Safari)
+- [x] Multi-tier storage adapters (File System API / OPFS / IndexedDB)
+- [x] macOS permission detection & guidance
 - [ ] PWA support (offline + installable)
 - [ ] WebCodecs encoding (better quality control)
-- [ ] OPFS storage (Firefox/Safari support)
+- [ ] Mobile camera-only recording (iOS Safari)
 - [ ] Video trimming before download
 - [ ] Custom recording area selection
 
